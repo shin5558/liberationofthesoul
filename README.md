@@ -2,6 +2,8 @@
 
 # Liberation of the Soul
 
+開発環境とテーブルを記載
+
 ## ⚙️ 開発環境
 - Ruby 3.x  
 - Rails 7.1.6  
