@@ -35,3 +35,10 @@
 /config/master.key
 
 /.env
+
+# ===== Database dump files =====
+db_dump.sql
+db_dump.sql.gz
+*.sql
+*.sql.gz
+
