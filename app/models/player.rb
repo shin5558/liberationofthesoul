@@ -1,5 +1,5 @@
 class Player < ApplicationRecord
-  belongs_to :element
+  belongs_to :element, optional: true # 必須にしたいなら optional: false を外す
   has_many :battles, dependent: :destroy
 
   validates :name, presence: true

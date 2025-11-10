@@ -1,10 +1,27 @@
 class CharactersController < ApplicationController
   def new
-    # まずは画面が出るだけでOK（AC要件は遷移）
-    # 後でフォームや初期値を入れていきます
+    # Player 作成フォーム用のインスタンス
+    @player = Player.new(base_hp: 5) # 見た目上の初期値。DBにdefaultがあるなら省略可
+    @elements = Element.order(:id)
   end
 
-  # 今は使わないが雛形として置いておく（コメントアウトでもOK）
-  # def create
-  # end
+  def create
+    @player = Player.new(player_params)
+    @player.base_hp ||= 5 # 念のための保険。マイグレーションで default: 5 があれば不要
+    @elements = Element.order(:id)
+
+    if @player.save
+      redirect_to root_path, notice: "キャラクター「#{@player.name}」を作成しました。"
+    else
+      flash.now[:alert] = '作成に失敗しました。入力内容をご確認ください。'
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def player_params
+    # フォームの scope を :character にする想定
+    params.require(:character).permit(:name, :element_id)
+  end
 end
