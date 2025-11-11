@@ -11,15 +11,19 @@
   </div>
 <% end %>
 
-<%= form_with scope: :character, url: characters_path, method: :post, local: true do |f| %>
+<%= form_with model: @player, url: characters_path, method: :post, local: true do |f| %>
   <div style="margin-bottom:16px;">
-    <label>名前</label><br>
+    <%= f.label :name, "名前" %>
     <%= f.text_field :name, required: true, placeholder: "Hero" ,style: "width:250px;padding:8px;border:1px solid #ccc;border-radius:6px;" %>
   </div>
 
   <div style="margin-bottom:16px;">
-    <label>属性</label><br>
-    <%= f.collection_select :element_id, @elements, :id, :name, prompt: "選択してください",style: "padding:8px;border-radius:6px;" %>
+    <%= f.label :element_id, "属性" %>
+    <%= f.collection_select :element_id, 
+    @elements, 
+    :id, :name, 
+    { prompt: "選択してください" },
+    { required: true ,style: "padding:8px;border-radius:6px;" } %>
   </div>
 
   <!-- base_hp はDB側 default:5 があれば不要。念のため固定で送るなら hidden でもOK
@@ -27,5 +31,5 @@
   -->
 
     <%= f.submit "キャラクターを作成する",style: "background:#21c57b;color:#fff;padding:10px 20px;border-radius:8px;border:none;font-weight:700;cursor:pointer;" %>
-    
+
 <% end %>
