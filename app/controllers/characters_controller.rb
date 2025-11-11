@@ -10,9 +10,9 @@ class CharactersController < ApplicationController
     @player.base_hp = 5 # 初期HPを固定値でセット
     @player.meta = {} # 空のJSONデータ（将来の拡張用）
 
-    if @player.save
-      # TODO: 現状は暫定的にトップへ戻す。後でバトル開始画面へ遷移予定。
-      redirect_to root_path, notice: "キャラクター「#{@player.name}」を作成しました。"
+    if @player.save # ここで中間ページに渡す遷移先を用意
+      @redirect_url = new_battle_path(player_id: @player.id)
+      render :created, status: :ok
     else
       flash.now[:alert] = '作成に失敗しました。入力内容をご確認ください。'
       @elements = Element.all

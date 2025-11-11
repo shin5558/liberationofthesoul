@@ -11,7 +11,7 @@
   </div>
 <% end %>
 
-<%= form_with model: @player, url: characters_path, method: :post, local: true do |f| %>
+<%= form_with model: @player, url: characters_path, method: :post, local: true, data: { turbo: false } do |f| %>
   <div style="margin-bottom:16px;">
     <%= f.label :name, "名前" %>
     <%= f.text_field :name, required: true, placeholder: "Hero" ,style: "width:250px;padding:8px;border:1px solid #ccc;border-radius:6px;" %>
