@@ -1,6 +1,17 @@
 <!-- app/views/characters/new.html.erb -->
 <h1 style="margin-bottom:16px;">キャラクター作成</h1>
 
+<% if @player.errors.any? %>
+  <div style="background:#ffecec; border:1px solid #ff5b5b; padding:12px; margin-bottom:16px; border-radius:8px;">
+    <strong><%= pluralize(@player.errors.count, "件のエラー") %>があります:</strong>
+    <ul>
+      <% @player.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
 <% if flash[:notice] %>
   <div style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:12px;color:#065f46;">
     <%= flash[:notice] %>
