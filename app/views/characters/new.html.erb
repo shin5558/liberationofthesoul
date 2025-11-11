@@ -1,26 +1,31 @@
 <!-- app/views/characters/new.html.erb -->
-<h1>キャラクター作成</h1>
+<h1 style="margin-bottom:16px;">キャラクター作成</h1>
 
-<% if flash[:alert] %>
-  <div style="color:#b00;margin:8px 0;"><%= flash[:alert] %></div>
+<% if flash[:notice] %>
+  <div style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:12px;color:#065f46;">
+    <%= flash[:notice] %>
+  </div>
+<% elsif flash[:alert] %>
+  <div style="background:#fee2e2;padding:10px;border-radius:8px;margin-bottom:12px;color:#991b1b;">
+    <%= flash[:alert] %>
+  </div>
 <% end %>
 
 <%= form_with scope: :character, url: characters_path, method: :post, local: true do |f| %>
-  <div style="margin:12px 0;">
+  <div style="margin-bottom:16px;">
     <label>名前</label><br>
-    <%= f.text_field :name, required: true, placeholder: "Hero" %>
+    <%= f.text_field :name, required: true, placeholder: "Hero" ,style: "width:250px;padding:8px;border:1px solid #ccc;border-radius:6px;" %>
   </div>
 
-  <div style="margin:12px 0;">
+  <div style="margin-bottom:16px;">
     <label>属性</label><br>
-    <%= f.collection_select :element_id, @elements, :id, :name, prompt: "選択してください", required: true %>
+    <%= f.collection_select :element_id, @elements, :id, :name, prompt: "選択してください",style: "padding:8px;border-radius:6px;" %>
   </div>
 
   <!-- base_hp はDB側 default:5 があれば不要。念のため固定で送るなら hidden でもOK
   <%= f.hidden_field :base_hp, value: 5 %>
   -->
 
-  <div style="margin:16px 0;">
-    <%= f.submit "作成する", style: "padding:8px 16px;border-radius:6px;background:#21c57b;font-weight:700;" %>
-  </div>
+    <%= f.submit "キャラクターを作成する",style: "background:#21c57b;color:#fff;padding:10px 20px;border-radius:8px;border:none;font-weight:700;cursor:pointer;" %>
+    
 <% end %>

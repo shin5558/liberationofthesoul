@@ -11,6 +11,7 @@ class CharactersController < ApplicationController
     @elements = Element.order(:id)
 
     if @player.save
+      # TODO: 現状は暫定的にトップへ戻す。後でバトル開始画面へ遷移予定。
       redirect_to root_path, notice: "キャラクター「#{@player.name}」を作成しました。"
     else
       flash.now[:alert] = '作成に失敗しました。入力内容をご確認ください。'
