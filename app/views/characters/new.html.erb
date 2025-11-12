@@ -12,17 +12,7 @@
   </div>
 <% end %>
 
-<% if flash[:notice] %>
-  <div style="background:#e6ffed;padding:10px;border-radius:8px;margin-bottom:12px;color:#065f46;">
-    <%= flash[:notice] %>
-  </div>
-<% elsif flash[:alert] %>
-  <div style="background:#fee2e2;padding:10px;border-radius:8px;margin-bottom:12px;color:#991b1b;">
-    <%= flash[:alert] %>
-  </div>
-<% end %>
-
-<%= form_with model: @player, url: characters_path, method: :post, local: true, data: { turbo: false } do |f| %>
+<%= form_with model: @player, url: characters_path, method: :post, local: true do |f| %>
   <div style="margin-bottom:16px;">
     <%= f.label :name, "名前" %>
     <%= f.text_field :name, required: true, placeholder: "Hero" ,style: "width:250px;padding:8px;border:1px solid #ccc;border-radius:6px;" %>
@@ -30,17 +20,15 @@
 
   <div style="margin-bottom:16px;">
     <%= f.label :element_id, "属性" %>
-    <%= f.collection_select :element_id, 
-    @elements, 
-    :id, :name, 
-    { prompt: "選択してください" },
-    { required: true ,style: "padding:8px;border-radius:6px;" } %>
+    <%= f.collection_select :element_id, @elements, :id, :name, { prompt: "選択してください" }, { required: true ,style: "padding:8px;border-radius:6px;" } %>
   </div>
 
   <!-- base_hp はDB側 default:5 があれば不要。念のため固定で送るなら hidden でもOK
   <%= f.hidden_field :base_hp, value: 5 %>
   -->
 
-    <%= f.submit "キャラクターを作成する",style: "background:#21c57b;color:#fff;padding:10px 20px;border-radius:8px;border:none;font-weight:700;cursor:pointer;" %>
+    <%= f.submit "キャラクターを作成する",
+    data: { disable_with: "作成中..." },
+    style: "background:#21c57b;color:#fff;padding:10px 20px;border-radius:8px;border:none;font-weight:700;cursor:pointer;" %>
 
 <% end %>

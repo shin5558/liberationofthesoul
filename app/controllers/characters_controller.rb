@@ -11,8 +11,9 @@ class CharactersController < ApplicationController
     @player.meta = {} # 空のJSONデータ（将来の拡張用）
 
     if @player.save # ここで中間ページに渡す遷移先を用意
-      @redirect_url = new_battle_path(player_id: @player.id)
-      render :created, status: :ok
+      # 成功時は「バトル開始画面」にフルリダイレクト＋フラッシュ
+      redirect_to new_battle_path(player_id: @player.id),
+                  notice: "キャラクター「#{@player.name}」を作成しました。"
     else
       flash.now[:alert] = '作成に失敗しました。入力内容をご確認ください。'
       @elements = Element.all
