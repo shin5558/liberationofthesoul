@@ -14,3 +14,36 @@
  *= require_self
  *= require flash
  */
+
+ /* === HP bar === */
+.hp-wrap {
+  margin: 12px 0 20px;
+}
+
+.hp-head {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.hp-bar {
+  height: 14px;
+  background: #e5e7eb;       /* グレー */
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+  position: relative;
+}
+
+.hp-fill {
+  height: 100%;
+  width: 0%;                  /* 初期0% → JSで目標%へ */
+  transition: width 400ms ease; /* ここが“ぬるっ”の肝 */
+}
+
+.hp-fill.player { background: #34d399; } /* player 基本: 緑 */
+.hp-fill.enemy  { background: #34d399; } /* enemy 基本: 赤 */
+
+/* 残量で色を変えたい場合（任意） */
+.hp-fill.is-warn  { background: #f59e0b; } /* 黄色 */
+.hp-fill.is-danger{ background: #ef4444; } /* 濃い赤 */

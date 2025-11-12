@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_06_090306) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_070802) do
   create_table "battle_actions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "battle_turn_id", null: false
     t.integer "actor_type", default: 0, null: false
@@ -67,6 +67,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_06_090306) do
     t.datetime "ended_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "player_hp", default: 5, null: false
+    t.integer "enemy_hp", default: 5, null: false
     t.index ["enemy_id"], name: "index_battles_on_enemy_id"
     t.index ["player_id"], name: "index_battles_on_player_id"
   end

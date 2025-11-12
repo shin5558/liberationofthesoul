@@ -1,3 +1,16 @@
+# == Schema Information
+#
+# Table name: effects
+#
+#  id             :bigint           not null, primary key
+#  duration_turns :integer
+#  formula        :text(65535)      not null
+#  kind           :integer          default("attack"), not null
+#  name           :string(255)      not null
+#  priority       :integer          default(0), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
 class Effect < ApplicationRecord
   has_many :card_effects, dependent: :destroy
   has_many :cards, through: :card_effects

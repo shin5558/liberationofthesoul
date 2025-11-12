@@ -2,11 +2,75 @@
 
 <p>あなたの手: <strong><%= @hand_label %></strong></p>
 <p>敵の手:     <strong><%= @cpu_hand_label %></strong></p>
-<p><strong><%= @result_text %></strong></p>
+<p style="font-size:1.2rem; margin: 12px 0;"><strong><%= @result_text %></strong></p>
 
-<br>
+<hr>
+
+<%# === プレイヤー HP === %>
+<% player = @battle.player %>
+<% player_max = player.base_hp %>
+<% player_now = @battle.player_hp %>
+<% player_pct = ((player_now.to_f / player_max) * 100).round %>
+
+<div class="hp-wrap">
+  <div class="hp-head">
+    <span>プレイヤー：<%= player.name %></span>
+    <span><%= player_now %> / <%= player_max %> HP</span>
+  </div>
+  <div class="hp-bar" data-target="<%= player_pct %>">
+    <div class="hp-fill player"></div>
+  </div>
+</div>
+
+<%# === 敵 HP === %>
+<% enemy = @battle.enemy %>
+<% enemy_max = enemy.base_hp %>
+<% enemy_now = @battle.enemy_hp %>
+<% enemy_pct = ((enemy_now.to_f / enemy_max) * 100).round %>
+
+<div class="hp-wrap">
+  <div class="hp-head">
+    <span>敵：<%= enemy.name %></span>
+    <span><%= enemy_now %> / <%= enemy_max %> HP</span>
+  </div>
+  <div class="hp-bar" data-target="<%= enemy_pct %>">
+    <div class="hp-fill enemy"></div>
+  </div>
+</div>
+<hr style="margin: 20px 0;">
+
 <%= link_to "もう一度戦う",
             new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
             class: "btn" %>
 <br><br>
 <%= link_to "トップに戻る", root_path, class: "btn" %>
+
+<script>
+(function () {
+  function applyHpBars() {
+    document.querySelectorAll('.hp-bar').forEach(function(bar){
+      var target = parseInt(bar.dataset.target || '0', 10);
+      var fill = bar.querySelector('.hp-fill');
+      if (!fill) return;
+
+      // 色（任意）：残量で色味を変える
+      fill.classList.remove('is-warn','is-danger');
+      if (target <= 30) {
+        fill.classList.add('is-danger');
+      } else if (target <= 60) {
+        fill.classList.add('is-warn');
+      }
+
+      // 初期は0% → 次フレームで目標% にして transition を効かせる
+      fill.style.width = '0%';
+      requestAnimationFrame(function(){
+        fill.style.width = target + '%';
+      });
+    });
+  }
+
+  // Turbo / 通常どちらでも動くよう両方フック
+  document.addEventListener('turbo:load', applyHpBars);
+  document.addEventListener('DOMContentLoaded', applyHpBars);
+})();
+</script>

@@ -2,77 +2,74 @@ class BattlesController < ApplicationController
   HAND_LABELS = { 'g' => 'グー', 't' => 'チョキ', 'p' => 'パー' }.freeze
 
   def new
-    # パラメータ優先、なければセッションから復元
     pid = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
-    # ここで flash は設定しない（画面表示だけ）
+    return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
 
-    return if @player
+    @battle = Battle.find_by(player: @player, status: :ongoing)
+    return if @battle
 
-    redirect_to new_character_path, alert: '先にキャラクターを作成してください。'
-    nil
+    @battle = Battle.create!(
+      player: @player,
+      enemy: Enemy.first,
+      status: :ongoing,
+      turns_count: 0,
+      player_hp: @player.base_hp, # ← 初回だけ初期HPをセット
+      enemy_hp: Enemy.first.base_hp,
+      flags: {}
+    )
   end
 
   def create
     pid = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
+    return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
 
-    # new と同じ“形”を保ちつつ、意味は「@playerがいなければリダイレクト」
-    unless @player
-      redirect_to new_character_path, alert: '先にキャラクターを作成してください。'
-      return
-    end
+    @battle = Battle.find_by(id: params[:battle_id], player: @player) ||
+              Battle.find_by(player: @player, status: :ongoing)
+    return redirect_to new_battle_path(player_id: @player.id), alert: 'バトルが見つかりません。' unless @battle
 
-    player_hand = params[:hand].presence # "g"/"t"/"p"
-    unless HAND_LABELS.key?(player_hand)
-      redirect_to new_battle_path(player_id: @player.id), alert: '手の指定が不正です。'
-      return
-    end
+    player_hand = params[:hand].presence
+    return redirect_to new_battle_path(player_id: @player.id), alert: '手の指定が不正です。' unless HAND_LABELS.key?(player_hand)
 
     cpu_hand = %w[g t p].sample
+    result   = JankenJudgeService.resolve(player_hand, cpu_hand)
 
-    # ★ 判定（サービス呼び出し）
-    result = JankenJudgeService.resolve(player_hand, cpu_hand)
-    # :player_win / :cpu_win / :draw が返る想定
+    # ダメージ反映（1点想定）
+    case result
+    when :player_win
+      @battle.enemy_hp = [@battle.enemy_hp - 1, 0].max # 小さい方を切り上げ
+    when :cpu_win
+      @battle.player_hp = [@battle.player_hp - 1, 0].max
+    end
 
-    # :player_win / :cpu_win / :draw → Battle.enum(:status) へ変換
-    status_map = {
-      player_win: :won,
-      cpu_win: :lost,
-      draw: :ongoing
-    }
-    battle_status = status_map.fetch(result)
+    # 勝敗確定
+    @battle.status = if @battle.enemy_hp <= 0
+                       :won
+                     elsif @battle.player_hp <= 0
+                       :lost
+                     else
+                       :ongoing
+                     end
 
-    @battle = Battle.create!(
-      player: @player,
-      enemy: Enemy.first,
-      status: battle_status,
-      turns_count: 1,
-      flags: { player_hand: player_hand, cpu_hand: cpu_hand, result: result }
-    )
+    @battle.turns_count += 1
+    @battle.flags = (@battle.flags || {}).merge(player_hand: player_hand, cpu_hand: cpu_hand, result: result)
+    @battle.save!
 
-    redirect_to battle_path(@battle, hand: player_hand)
+    redirect_to battle_path(@battle)
   end
 
   def show
-    @battle = Battle.find_by(id: params[:id])
-    unless @battle
-      redirect_to new_battle_path(player_id: session[:player_id]),
-                  alert: 'バトルが見つかりません。もう一度はじめてください。'
-      return
-    end
+    @battle = Battle.find_by(id: params[:id]) or
+      return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
 
-    # URL hand があれば優先、なければ flags から
-    @hand        = params[:hand].presence || @battle.flags&.dig('player_hand')
-    @cpu_hand    = @battle.flags&.dig('cpu_hand') || 't'
+    @hand        = @battle.flags&.dig('player_hand')
+    @cpu_hand    = @battle.flags&.dig('cpu_hand')
+    @result      = @battle.flags&.dig('result')
 
     @hand_label     = HAND_LABELS[@hand]     || '未設定'
     @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
 
-    # 画面で勝敗テキストを使いたいときに参照できるよう残す
-    @result = @battle.flags&.dig('result') # :player_win / :cpu_win / :draw
-
-    # ★ 結果文言
     @result_text =
       case @result&.to_sym
       when :player_win then 'あなたの勝ち！'

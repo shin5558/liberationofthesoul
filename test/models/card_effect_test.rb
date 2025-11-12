@@ -1,3 +1,24 @@
+# == Schema Information
+#
+# Table name: card_effects
+#
+#  id            :bigint           not null, primary key
+#  magnitude     :float(24)        default(1.0)
+#  order_in_card :integer          default(0), not null
+#  card_id       :bigint           not null
+#  effect_id     :bigint           not null
+#
+# Indexes
+#
+#  index_card_effects_on_card_id                (card_id)
+#  index_card_effects_on_card_id_and_effect_id  (card_id,effect_id) UNIQUE
+#  index_card_effects_on_effect_id              (effect_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (card_id => cards.id)
+#  fk_rails_...  (effect_id => effects.id)
+#
 require "test_helper"
 
 class CardEffectTest < ActiveSupport::TestCase
