@@ -29,20 +29,28 @@ class BattlesController < ApplicationController
       return
     end
 
-    # ここは仮の受け皿（M2-13想定）
+    cpu_hand = %w[g t p].sample
+
+    # ★ 判定（サービス呼び出し）
+    result = JankenJudgeService.resolve(player_hand, cpu_hand)
+    # :player_win / :cpu_win / :draw が返る想定
+
+    # :player_win / :cpu_win / :draw → Battle.enum(:status) へ変換
+    status_map = {
+      player_win: :won,
+      cpu_win: :lost,
+      draw: :ongoing
+    }
+    battle_status = status_map.fetch(result)
+
     @battle = Battle.create!(
       player: @player,
       enemy: Enemy.first,
-      status: :ongoing,
-      turns_count: 0,
-      flags: {}
+      status: battle_status,
+      turns_count: 1,
+      flags: { player_hand: player_hand, cpu_hand: cpu_hand, result: result }
     )
-    cpu_hand = %w[g t p].sample
 
-    # リロードでも残るように flags に保存
-    @battle.update!(flags: (@battle.flags || {}).merge(player_hand: player_hand, cpu_hand: cpu_hand))
-
-    # 仮のCPU手（tなど）や判定は後で実装
     redirect_to battle_path(@battle, hand: player_hand)
   end
 
@@ -54,11 +62,23 @@ class BattlesController < ApplicationController
       return
     end
 
-    # URLの hand を優先。無ければ flags から復元
-    @hand     = params[:hand].presence || @battle.flags&.dig('player_hand')
-    @cpu_hand = @battle.flags&.dig('cpu_hand') || 't'
+    # URL hand があれば優先、なければ flags から
+    @hand        = params[:hand].presence || @battle.flags&.dig('player_hand')
+    @cpu_hand    = @battle.flags&.dig('cpu_hand') || 't'
 
     @hand_label     = HAND_LABELS[@hand]     || '未設定'
     @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
+
+    # 画面で勝敗テキストを使いたいときに参照できるよう残す
+    @result = @battle.flags&.dig('result') # :player_win / :cpu_win / :draw
+
+    # ★ 結果文言
+    @result_text =
+      case @result&.to_sym
+      when :player_win then 'あなたの勝ち！'
+      when :cpu_win    then 'あなたの負け…'
+      when :draw       then '引き分けです。'
+      else                  '判定不能'
+      end
   end
 end

@@ -2,7 +2,9 @@
 
 <p>あなたの手: <strong><%= @hand_label %></strong></p>
 <p>敵の手:     <strong><%= @cpu_hand_label %></strong></p>
+<p><strong><%= @result_text %></strong></p>
 
+<br>
 <%= link_to "もう一度戦う",
             new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
             class: "btn" %>
