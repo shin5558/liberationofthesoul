@@ -7,11 +7,11 @@ class BattlesController < ApplicationController
   def create
     # 仮のバトル処理
     @player = Player.find_by(id: params[:player_id])
+    @hand = params[:hand] # g, t, p のいずれか
 
-    # TODO: 本実装では Battle モデルを保存予定
-    # 今は仮の結果をセット
-    flash[:notice] = 'バトルが開始されました！'
-    redirect_to battle_path(id: 1) # 仮で show に飛ばす（まだDB未接続）
+    # TODO: CPUの手をランダムに選び、結果判定（次ステップで実装予定）
+    flash[:notice] = "あなたの手: #{@hand} を選びました！"
+    redirect_to battle_path(id: 1) # 仮
   end
 
   def show
