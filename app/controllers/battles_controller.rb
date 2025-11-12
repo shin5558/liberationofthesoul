@@ -9,13 +9,15 @@ class BattlesController < ApplicationController
     @player = Player.find_by(id: params[:player_id])
     @hand = params[:hand] # g, t, p のいずれか
 
+    # 仮のCPU手（本実装ではランダム化予定）
+    cpu_hand = %w[g t p].sample
     # TODO: CPUの手をランダムに選び、結果判定（次ステップで実装予定）
     flash[:notice] = "あなたの手: #{@hand} を選びました！"
-    redirect_to battle_path(id: 1) # 仮
+    redirect_to battle_path(id: 1, player_hand: @hand, cpu_hand: cpu_hand)
   end
 
   def show
-    # 仮の表示（Battleモデル作成後に置き換え）
-    @battle_result = '勝利！'
+    @player_hand = params[:player_hand]
+    @cpu_hand = params[:cpu_hand]
   end
 end
