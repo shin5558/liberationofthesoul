@@ -1,3 +1,9 @@
 <h1>じゃんけんバトル開始！</h1>
+<p>プレイヤー: <%= @player&.name || "不明" %></p>
+
+<%= form_with url: battles_path, method: :post, local: true do |f| %>
+  <%= hidden_field_tag :player_id, @player.id if @player %>
+  <%= f.submit "バトルを開始する", class: "btn" %>
+<% end %>
 
 <%= link_to "トップに戻る", root_path, class: "btn" %>
