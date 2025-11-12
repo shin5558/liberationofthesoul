@@ -2,21 +2,32 @@ class BattlesController < ApplicationController
   HAND_LABELS = { 'g' => 'グー', 't' => 'チョキ', 'p' => 'パー' }.freeze
 
   def new
-    pid = params[:player_id].presence || session[:player_id]
+    pid     = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
-    return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
+    unless @player
+      redirect_to new_character_path, alert: '先にキャラクターを作成してください。'
+      return
+    end
 
+    session[:player_id] = @player.id
+
+    # 進行中があればそれを使う。なければここで作る
     @battle = Battle.find_by(player: @player, status: :ongoing)
     return if @battle
 
+    enemy = Enemy.first
+    unless enemy
+      redirect_to root_path, alert: '敵データがありません。'
+      return
+    end
+
     @battle = Battle.create!(
       player: @player,
-      enemy: Enemy.first,
+      enemy: enemy,
       status: :ongoing,
       turns_count: 0,
-      player_hp: @player.base_hp, # ← 初回だけ初期HPをセット
-      enemy_hp: Enemy.first.base_hp,
       flags: {}
+      # HP 初期化は Battle の before_validation で base_hp から自動
     )
   end
 
@@ -25,35 +36,38 @@ class BattlesController < ApplicationController
     @player = Player.find_by(id: pid)
     return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
 
+    # 進行中バトルを掴む（明示指定があれば優先）
     @battle = Battle.find_by(id: params[:battle_id], player: @player) ||
               Battle.find_by(player: @player, status: :ongoing)
     return redirect_to new_battle_path(player_id: @player.id), alert: 'バトルが見つかりません。' unless @battle
 
     player_hand = params[:hand].presence
-    return redirect_to new_battle_path(player_id: @player.id), alert: '手の指定が不正です。' unless HAND_LABELS.key?(player_hand)
-
-    cpu_hand = %w[g t p].sample
-    result   = JankenJudgeService.resolve(player_hand, cpu_hand)
-
-    # ダメージ反映（1点想定）
-    case result
-    when :player_win
-      @battle.enemy_hp = [@battle.enemy_hp - 1, 0].max # 小さい方を切り上げ
-    when :cpu_win
-      @battle.player_hp = [@battle.player_hp - 1, 0].max
+    unless HAND_LABELS.key?(player_hand)
+      return redirect_to new_battle_path(player_id: @player.id),
+                         alert: '手の指定が不正です。'
     end
 
-    # 勝敗確定
-    @battle.status = if @battle.enemy_hp <= 0
-                       :won
-                     elsif @battle.player_hp <= 0
-                       :lost
-                     else
-                       :ongoing
-                     end
+    cpu_hand = %w[g t p].sample
+    result   = JankenJudgeService.resolve(player_hand, cpu_hand) # :player_win / :cpu_win / :draw
 
+    # --- HP反映 ---
+    case result
+    when :player_win
+      @battle.damage_enemy!(1)       # 敵HP -1（0で勝利）
+    when :cpu_win
+      @battle.damage_player!(1)      # 自HP -1（0で敗北）
+    when :draw
+      # ひとまずの処理：双方 +1 回復（上限まで）
+      @battle.heal_player!(1)
+    end
+
+    # ターン数と履歴フラグを更新
     @battle.turns_count += 1
-    @battle.flags = (@battle.flags || {}).merge(player_hand: player_hand, cpu_hand: cpu_hand, result: result)
+    @battle.flags = (@battle.flags || {}).merge(
+      player_hand: player_hand,
+      cpu_hand: cpu_hand,
+      result: result
+    )
     @battle.save!
 
     redirect_to battle_path(@battle)
@@ -63,6 +77,7 @@ class BattlesController < ApplicationController
     @battle = Battle.find_by(id: params[:id]) or
       return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
 
+    # 直近の結果表示用
     @hand        = @battle.flags&.dig('player_hand')
     @cpu_hand    = @battle.flags&.dig('cpu_hand')
     @result      = @battle.flags&.dig('result')
@@ -74,7 +89,7 @@ class BattlesController < ApplicationController
       case @result&.to_sym
       when :player_win then 'あなたの勝ち！'
       when :cpu_win    then 'あなたの負け…'
-      when :draw       then '引き分けです。'
+      when :draw       then '引き分け（+1回復）'
       else                  '判定不能'
       end
   end
