@@ -25,6 +25,8 @@ class CharactersController < ApplicationController
   private
 
   def player_params
-    params.require(:player).permit(:name, :element_id)
+    # :player が基本。もし :character で来たらそれも許容する
+    key = params[:player].present? ? :player : :character
+    params.require(key).permit(:name, :element_id)
   end
 end
