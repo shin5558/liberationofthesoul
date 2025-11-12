@@ -1,8 +1,10 @@
 <h1>バトル結果（仮）</h1>
 
-<p>あなたの手: <%= @player_hand.presence || "未選択" %></p>
-<p>敵の手: <%= @cpu_hand.presence || "未設定" %></p>
+<p>あなたの手: <strong><%= @hand_label %></strong></p>
+<p>敵の手:     <strong><%= @cpu_hand_label %></strong></p>
 
-<%= link_to "もう一度戦う", new_battle_path(player_id: params[:player_id]), class: "btn" %>
+<%= link_to "もう一度戦う",
+            new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
+            class: "btn" %>
 <br><br>
 <%= link_to "トップに戻る", root_path, class: "btn" %>

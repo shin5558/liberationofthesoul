@@ -11,7 +11,8 @@ class CharactersController < ApplicationController
     @player.meta = {} # 空のJSONデータ（将来の拡張用）
 
     if @player.save # ここで中間ページに渡す遷移先を用意
-      # 成功時は「バトル開始画面」にフルリダイレクト＋フラッシュ
+      # セッションに保存（保険）。以後はパラメータがなくても復元できる
+      session[:player_id] = @player.id
       redirect_to new_battle_path(player_id: @player.id),
                   notice: "キャラクター「#{@player.name}」を作成しました。"
     else

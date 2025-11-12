@@ -4,17 +4,20 @@
 <p>出す手を選んでください:</p>
 
 <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
-  <%= button_to "グー ✊", battles_path, method: :post,
+  <%= button_to "グー ✊", battles_path,
+      method: :post,
       params: { player_id: @player.id, hand: "g" },
       class: "btn",
       style: "background:#ffb347; padding:12px 24px; border:none; border-radius:8px; font-weight:700; color:white; cursor:pointer;" %>
 
-  <%= button_to "チョキ ✌️", battles_path, method: :post,
+  <%= button_to "チョキ ✌️", battles_path,
+      method: :post,
       params: { player_id: @player.id, hand: "t" },
       class: "btn",
       style: "background:#8ecae6; padding:12px 24px; border:none; border-radius:8px; font-weight:700; color:white; cursor:pointer;" %>
 
-  <%= button_to "パー 🖐️", battles_path, method: :post,
+  <%= button_to "パー 🖐️", battles_path,
+      method: :post,
       params: { player_id: @player.id, hand: "p" },
       class: "btn",
       style: "background:#90be6d; padding:12px 24px; border:none; border-radius:8px; font-weight:700; color:white; cursor:pointer;" %>
