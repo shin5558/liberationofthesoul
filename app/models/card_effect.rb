@@ -5,6 +5,7 @@
 #  id            :bigint           not null, primary key
 #  magnitude     :float(24)        default(1.0)
 #  order_in_card :integer          default(0), not null
+#  position      :integer
 #  card_id       :bigint           not null
 #  effect_id     :bigint           not null
 #
@@ -25,4 +26,5 @@ class CardEffect < ApplicationRecord
 
   validates :magnitude, numericality: true
   validates :order_in_card, numericality: { only_integer: true }
+  validates :position, presence: true
 end

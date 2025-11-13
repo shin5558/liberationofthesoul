@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_070802) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_13_013939) do
   create_table "battle_actions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "battle_turn_id", null: false
     t.integer "actor_type", default: 0, null: false
@@ -78,6 +78,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_070802) do
     t.bigint "effect_id", null: false
     t.float "magnitude", default: 1.0
     t.integer "order_in_card", default: 0, null: false
+    t.integer "position"
     t.index ["card_id", "effect_id"], name: "index_card_effects_on_card_id_and_effect_id", unique: true
     t.index ["card_id"], name: "index_card_effects_on_card_id"
     t.index ["effect_id"], name: "index_card_effects_on_effect_id"
@@ -103,6 +104,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_070802) do
     t.integer "duration_turns"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "target", default: 0, null: false
+    t.integer "value", default: 0, null: false
   end
 
   create_table "elements", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
