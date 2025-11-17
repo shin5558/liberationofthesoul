@@ -1,0 +1,52 @@
+<h1>リザルト</h1>
+
+<%# ====== 勝敗表示 ====== %>
+<% if @battle.won? %>
+  <p style="color: green; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
+    🎉 勝利！敵を倒しました！
+  </p>
+<% elsif @battle.lost? %>
+  <p style="color: red; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
+    💀 敗北…もう一度挑戦しよう！
+  </p>
+<% else %>
+  <p style="font-size:1.2rem; margin-bottom:8px;">
+    バトルはまだ継続中です。（この画面には本来来ない想定）
+  </p>
+<% end %>
+
+<hr>
+
+<div style="margin:16px 0;">
+  <p>プレイヤー: <strong><%= @battle.player.name %></strong></p>
+  <p>敵: <strong><%= @battle.enemy.name %></strong></p>
+</div>
+
+<div style="margin:16px 0; padding:12px; border:1px solid #ddd; border-radius:8px;">
+  <p>ターン数: <strong><%= @turns_count %> ターン</strong></p>
+  <p>戦績: <strong><%= @win_count %> 勝 / <%= @lose_count %> 敗 / <%= @draw_count %> 分</strong></p>
+  <p>
+    最終HP:
+    あなた <strong><%= @battle.player_hp %></strong> / <%= @battle.player_max_hp %> ,
+    敵 <strong><%= @battle.enemy_hp %></strong> / <%= @battle.enemy_max_hp %>
+  </p>
+</div>
+
+<%# ざっくりした一言コメント（おまけ） %>
+<div style="margin:16px 0;">
+  <% if @battle.won? %>
+    <p>いい感じ！ 次はもっと高ダメージのカードや戦略も試してみましょう。</p>
+  <% elsif @battle.lost? %>
+    <p>あと少し…！ 手の相性や回復タイミングを変えると勝てるかも。</p>
+  <% end %>
+</div>
+
+<hr style="margin:20px 0;">
+
+<div style="display:flex; gap:12px; flex-wrap:wrap;">
+  <%= link_to "戦闘ログを見る", battle_path(@battle), class: "btn" %>
+  <%= link_to "もう一度戦う",
+              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
+              class: "btn" %>
+  <%= link_to "トップに戻る", root_path, class: "btn" %>
+</div>

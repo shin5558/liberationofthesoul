@@ -93,27 +93,54 @@ class BattlesController < ApplicationController
 
     outcome = @battle.check_battle_end!
 
-    redirect_to battle_path(@battle), notice: outcome == :ongoing ? nil : 'バトル終了！'
-  end
+    if @battle.won? || @battle.lost?
+      # HPが0 → 戦闘終了 → リザルト画面へ
+      redirect_to result_battle_path(@battle)
+    else
+      # まだどちらもHP残っている → 通常のバトル画面（show）へ
+      redirect_to battle_path(@battle)
+    end
 
-  def show
-    @battle = Battle.find_by(id: params[:id]) or
-      return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
+    def show
+      @battle = Battle.find_by(id: params[:id]) or
+        return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
 
-    # 直近の結果表示用
-    @hand        = @battle.flags&.dig('player_hand')
-    @cpu_hand    = @battle.flags&.dig('cpu_hand')
-    @result      = @battle.flags&.dig('result')
+      # 直近の結果表示用
+      @hand        = @battle.flags&.dig('player_hand')
+      @cpu_hand    = @battle.flags&.dig('cpu_hand')
+      @result      = @battle.flags&.dig('result')
 
-    @hand_label     = HAND_LABELS[@hand]     || '未設定'
-    @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
+      @hand_label     = HAND_LABELS[@hand]     || '未設定'
+      @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
 
-    @result_text =
-      case @result&.to_sym
-      when :player_win then 'あなたの勝ち！'
-      when :cpu_win    then 'あなたの負け…'
-      when :draw       then '引き分け（+1回復）'
-      else                  '勝負あり'
-      end
+      @result_text =
+        case @result&.to_sym
+        when :player_win then 'あなたの勝ち！'
+        when :cpu_win    then 'あなたの負け…'
+        when :draw       then '引き分け（+1回復）'
+        else                  '勝負あり'
+        end
+    end
+
+    # ===============================
+    # ここから新規：リザルト画面
+    # ===============================
+    def result
+      @battle = Battle.find_by(id: params[:id]) or
+        return redirect_to(
+          new_battle_path(player_id: session[:player_id]),
+          alert: 'バトルが見つかりません。'
+        )
+
+      # まだ ongoing なら通常の show へ戻す
+      return redirect_to(battle_path(@battle)) if @battle.ongoing?
+
+      logs = (@battle.flags || {})['logs'] || []
+
+      @turns_count = @battle.turns_count
+      @win_count   = logs.count { |log| log['result'] == 'player_win' }
+      @lose_count  = logs.count { |log| log['result'] == 'cpu_win' }
+      @draw_count  = logs.count { |log| log['result'] == 'draw' }
+    end
   end
 end
