@@ -1,18 +1,43 @@
 <h1>じゃんけんバトル開始！</h1>
 <p>プレイヤー: <%= @player&.name || "不明" %></p>
 
+<% if @neutral_hand.present? %>
+  <div class="card-panel" style="border:1px solid #ccc; padding:12px; margin:12px 0;">
+    <h2 style="margin-top:0;">戦闘前に使えるカード</h2>
+    <p><strong><%= @neutral_hand.card.name %></strong></p>
+    <p><%= @neutral_hand.card.description %></p>
+
+    <% if @neutral_hand.consumed? %>
+      <p style="color: gray; font-size:0.9rem;">※ このカードはすでに使用済みです</p>
+    <% else %>
+      <%= button_to "このカードを使う",
+            use_neutral_card_battle_path(@battle),
+            method: :post,
+            params: { hand_id: @neutral_hand.id },
+            class: "btn" %>
+    <% end %>
+  </div>
+<% else %>
+  <p>戦闘前に使用できるカードはありません。</p>
+<% end %>
+
+<hr>
+
 <p>出す手を選んでください:</p>
 
 <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
   <%= button_to "グー ✊", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "g" },
         class: "btn" %>
+
   <%= button_to "チョキ ✌️", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "t" },
         class: "btn" %>
+
   <%= button_to "パー ✋", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "p" },
         class: "btn" %>
 </div>
 
+<br>
 <%= link_to "トップに戻る", root_path, class: "btn" %>

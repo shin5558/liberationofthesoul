@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   # resources :battles, only: %i[new create show]
   resources :battles, only: %i[new create show] do
     member do
+      post :use_neutral_card # ★ここに追加！
       get :result # /battles/:id/result → battles#result
     end
   end

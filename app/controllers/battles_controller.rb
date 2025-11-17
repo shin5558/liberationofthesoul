@@ -13,24 +13,99 @@ class BattlesController < ApplicationController
 
     # 進行中があればそれを使う。なければここで作る
     @battle = Battle.find_by(player: @player, status: :ongoing)
-    return if @battle
 
-    enemy = Enemy.first
-    unless enemy
-      redirect_to root_path, alert: '敵データがありません。'
+    unless @battle
+      enemy = Enemy.first
+      unless enemy
+        redirect_to root_path, alert: '敵データがありません。'
+        return
+      end
+
+      @battle = Battle.create!(
+        player: @player,
+        enemy: enemy,
+        status: :ongoing,
+        turns_count: 0,
+        flags: {}
+        # HP 初期化は Battle の before_validation で base_hp から自動
+      )
+
+      # ★ 無属性カードをランダムで1枚配布（この時点では battle は new record じゃないのでOK）
+      @battle.assign_random_neutral_card!
+      @battle.save!
+    end
+
+    # ★ 戦闘前（turns_count == 0）のときだけ、まだ未使用の無属性カードを探す
+    @neutral_hand =
+      if @battle.turns_count.zero?
+        @battle.battle_hands
+               .joins(:card)
+               .where(
+                 owner_type: 'player', # enum の中身が "player" なので文字列でOK
+                 consumed: false,
+                 cards: { element_id: nil }
+               )
+               .first
+      end
+  end
+
+  # 戦闘前に無属性カードを使う（M4-06）
+  def use_neutral_card
+    @battle = Battle.find_by(id: params[:id]) or begin
+      redirect_to new_battle_path(player_id: session[:player_id]),
+                  alert: 'バトルが見つかりません。'
       return
     end
 
-    @battle = Battle.create!(
-      player: @player,
-      enemy: enemy,
-      status: :ongoing,
-      turns_count: 0,
-      flags: {}
-      # HP 初期化は Battle の before_validation で base_hp から自動
-    )
-    # ★ ここで無属性カードをランダムで1枚配布
-    assign_random_neutral_card(@battle)
+    # ★ 開戦後（turns_count > 0）は使用不可
+    if @battle.turns_count.positive?
+      redirect_to battle_path(@battle), alert: 'カードは戦闘前にしか使えません。'
+      return
+    end
+
+    # まだ未使用の無属性カードの手札を1枚探す
+    hand = @battle.battle_hands
+                  .joins(:card)
+                  .where(
+                    id: params[:hand_id],
+                    owner_type: 'player',
+                    owner_id: @battle.player_id,
+                    consumed: false,
+                    cards: { element_id: nil }
+                  )
+                  .first
+
+    unless hand
+      redirect_to new_battle_path(player_id: @battle.player_id),
+                  alert: '使用できるカードがありません。'
+      return
+    end
+
+    card = hand.card
+
+    # ★ カード効果を適用（M3-06 / M4-01 / M4-02 で作ったやつ）
+    CardEffectApplier.apply(battle: @battle, card: card)
+
+    # ★ 使用済みにする
+    hand.update!(consumed: true)
+
+    # （お好み）ログにも残したければ flags["logs"] に追加
+    flags = (@battle.flags || {}).deep_dup
+    logs  = flags['logs'] || []
+    logs << {
+      'turn' => 0, # 戦闘前なので 0 としておく
+      'mode' => 'pre_card',
+      'card_id' => card.id,
+      'card_name' => card.name,
+      'player_hp' => @battle.player_hp,
+      'enemy_hp' => @battle.enemy_hp
+    }
+    flags['logs'] = logs
+    @battle.flags = flags
+    @battle.save!
+
+    redirect_to new_battle_path(player_id: @battle.player_id),
+                notice: 'カードを使用しました。'
   end
 
   def create
