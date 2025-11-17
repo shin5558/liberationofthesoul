@@ -14,11 +14,21 @@
 #  updated_at     :datetime         not null
 #
 class Effect < ApplicationRecord
-  # 種類: ダメージ or 回復
-  enum kind: { damage: 0, heal: 1 }
+  enum kind: {
+    heal: 0, # HP回復
+    damage: 1, # HPダメージ
+    buff_attack: 2, # 攻撃バフ
+    buff_defense: 3, # 防御バフ
+    buff_speed: 4, # 速度バフ
+    debuff_attack: 5, # 攻撃デバフ
+    debuff_defense: 6, # 防御デバフ
+    debuff_speed: 7 # 速度デバフ
+  }
 
-  # 対象: プレイヤー or 敵
-  enum target: { player: 0, enemy: 1 }
+  enum target: {
+    player: 0,
+    enemy: 1
+  }
 
   # 数値チェック（value は整数）
   validates :value, numericality: { only_integer: true }

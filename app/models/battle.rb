@@ -87,6 +87,66 @@ class Battle < ApplicationRecord
     end
   end
 
+  # =========================
+  # ここからバフ／デバフ関連
+  # =========================
+
+  # flags に保存しているバフ情報を取得
+  # side: :player / :enemy
+  def buffs_for(side)
+    (flags || {}).dig('buffs', side.to_s) || {}
+  end
+
+  # バフを追加（攻撃／防御／速度など）
+  # side   : :player or :enemy
+  # stat   : :attack / :defense / :speed など
+  # amount : +1, -1 などの補正値
+  # duration_turns : 何ターン残すか
+  def add_buff!(side:, stat:, amount:, duration_turns:)
+    f = (flags || {}).deep_dup
+    f['buffs'] ||= {}
+    f['buffs'][side.to_s] ||= {}
+
+    current = f['buffs'][side.to_s][stat.to_s] || { 'value' => 0, 'turns' => 0 }
+    current['value'] += amount
+    current['turns']  = [current['turns'], duration_turns.to_i].max
+
+    f['buffs'][side.to_s][stat.to_s] = current
+    self.flags = f
+  end
+
+  # ターン終了時などに呼んで「残りターン」を1減らす
+  # 0 以下になったバフは消す
+  def tick_buffs!
+    f = (flags || {}).deep_dup
+    buffs = f['buffs'] || {}
+
+    buffs.each do |_side, stats|
+      stats.each do |_stat, buff|
+        buff['turns'] = buff['turns'].to_i - 1
+      end
+      stats.delete_if { |_stat, buff| buff['turns'] <= 0 }
+    end
+
+    buffs.delete_if { |_side, stats| stats.blank? }
+    f['buffs'] = buffs
+    self.flags = f
+  end
+
+  # 攻撃力・防御力などを「バフ込み」で計算したいときに使う helper（例）
+  # base には元のダメージ量などを渡す想定
+  def effective_attack_power(side, base)
+    buffs = buffs_for(side)
+    atk_buff = (buffs.dig('attack', 'value') || 0).to_i
+    [base + atk_buff, 0].max
+  end
+
+  def effective_defense(side, base)
+    buffs = buffs_for(side)
+    def_buff = (buffs.dig('defense', 'value') || 0).to_i
+    [base + def_buff, 0].max
+  end
+
   private
 
   def init_hp_on_create
