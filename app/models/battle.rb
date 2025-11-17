@@ -147,6 +147,38 @@ class Battle < ApplicationRecord
     [base + def_buff, 0].max
   end
 
+  # ----- ここから追加: 先行権（イニシアチブ）関連 -----
+
+  # 現在の先行側を返す : "player" / "enemy" / nil
+  def current_priority_side
+    (flags || {}).dig('priority', 'side')
+  end
+
+  # 先行権を付与する
+  # side: :player / :enemy
+  # duration_turns: 何ターン有効にするか
+  def grant_priority!(side:, duration_turns: 1)
+    self.flags ||= {}
+    self.flags['priority'] ||= {}
+    self.flags['priority']['side']  = side.to_s
+    self.flags['priority']['turns'] = duration_turns.to_i
+  end
+
+  # ターン経過時に残りターンを1減らして、0になったら先行権を削除
+  def advance_priority_turn!
+    pri = (flags || {})['priority']
+    return unless pri
+
+    pri['turns'] = pri['turns'].to_i - 1
+    if pri['turns'] <= 0
+      flags.delete('priority')
+    else
+      flags['priority'] = pri
+    end
+  end
+
+  # ----- ここまで追加 -----
+
   private
 
   def init_hp_on_create

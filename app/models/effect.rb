@@ -22,7 +22,8 @@ class Effect < ApplicationRecord
     buff_speed: 4, # 速度バフ
     debuff_attack: 5, # 攻撃デバフ
     debuff_defense: 6, # 防御デバフ
-    debuff_speed: 7 # 速度デバフ
+    debuff_speed: 7, # 速度デバフ
+    grant_priority: 8 # ★ これを追加
   }
 
   enum target: {

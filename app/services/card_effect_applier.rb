@@ -40,6 +40,8 @@ class CardEffectApplier
     when :buff_attack, :buff_defense, :buff_speed,
          :debuff_attack, :debuff_defense, :debuff_speed
       apply_buff_like(effect)
+    when :grant_priority
+      apply_priority(effect)
     else
       Rails.logger.warn "[CardEffectApplier] Unknown effect kind: #{effect.kind}"
     end
@@ -89,5 +91,21 @@ class CardEffectApplier
     duration = 1 if duration <= 0
 
     @battle.add_buff!(side: side, stat: stat, amount: amount, duration_turns: duration)
+  end
+
+  # ★ 先行権付与
+  def apply_priority(effect)
+    # 対象サイド：player / enemy
+    side =
+      case effect.target.to_sym
+      when :player then :player
+      when :enemy  then :enemy
+      else              :player
+      end
+
+    duration = effect.duration_turns.to_i
+    duration = 1 if duration <= 0
+
+    @battle.grant_priority!(side: side, duration_turns: duration)
   end
 end

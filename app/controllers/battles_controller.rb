@@ -31,6 +31,9 @@ class BattlesController < ApplicationController
     )
   end
 
+  # ★ ここで先行権ターンを1進める
+  @battle.advance_priority_turn!
+
   def create
     pid = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
@@ -74,7 +77,8 @@ class BattlesController < ApplicationController
       'cpu_hand' => cpu_hand,
       'result' => result.to_s,
       'player_hp' => @battle.player_hp,
-      'enemy_hp' => @battle.enemy_hp
+      'enemy_hp' => @battle.enemy_hp,
+      'first_actor' => @battle.current_priority_side || 'player' # デフォルトはplayer
     }
 
     flags['logs'] = logs
