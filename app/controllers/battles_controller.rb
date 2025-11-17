@@ -63,11 +63,32 @@ class BattlesController < ApplicationController
 
     # ターン数と履歴フラグを更新
     @battle.turns_count += 1
-    @battle.flags = (@battle.flags || {}).merge(
-      player_hand: player_hand,
-      cpu_hand: cpu_hand,
-      result: result
+    # ==== ここから「ログ」追記 ====
+    flags = (@battle.flags || {}).deep_dup
+
+    logs  = flags['logs'] || []
+    logs << {
+      'turn' => @battle.turns_count,
+      'mode' => (params[:mode] == 'heal' ? 'heal' : 'attack'),
+      'player_hand' => player_hand,
+      'cpu_hand' => cpu_hand,
+      'result' => result.to_s,
+      'player_hp' => @battle.player_hp,
+      'enemy_hp' => @battle.enemy_hp
+    }
+
+    flags['logs'] = logs
+
+    # 「最後の一手」情報も維持
+    flags.merge!(
+      'player_hand' => player_hand,
+      'cpu_hand' => cpu_hand,
+      'result' => result
     )
+
+    @battle.flags = flags
+    # ===== ログここまで ======
+
     @battle.save!
 
     redirect_to battle_path(@battle)

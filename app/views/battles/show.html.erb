@@ -39,6 +39,39 @@
 </div>
 <hr style="margin: 20px 0;">
 
+<% logs = (@battle.flags || {})['logs'] || [] %>
+
+<% if logs.present? %>
+  <h2 style="margin-top:24px; margin-bottom:8px;">戦闘ログ</h2>
+
+  <ul style="list-style:disc; padding-left:20px; font-size:14px;">
+    <% logs.each do |log| %>
+      <li style="margin-bottom:4px;">
+        ターン <%= log['turn'] %>：
+        <% if log['mode'] == 'heal' %>
+          回復行動 → プレイヤーHP <%= log['player_hp'] %> / 敵HP <%= log['enemy_hp'] %>
+        <% else %>
+          あなた：
+          <%= BattlesController::HAND_LABELS[log['player_hand']] || '-' %> /
+          敵：
+          <%= BattlesController::HAND_LABELS[log['cpu_hand']] || '-' %> →
+          <% case log['result'] %>
+          <% when 'player_win' %>
+            あなたの勝ち！
+          <% when 'cpu_win' %>
+            あなたの負け…
+          <% when 'draw' %>
+            引き分け（回復）
+          <% else %>
+            結果不明
+          <% end %>
+          （HP あなた: <%= log['player_hp'] %> / 敵: <%= log['enemy_hp'] %>）
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
 <%= link_to "もう一度戦う",
             new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
             class: "btn" %>
