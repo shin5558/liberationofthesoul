@@ -21,7 +21,7 @@
 #  fk_rails_...  (element_id => elements.id)
 #
 class Card < ApplicationRecord
-  belongs_to :element
+  belongs_to :element, optional: true # ★ここ
 
   has_many :card_effects, -> { order(:position) }, dependent: :destroy
   has_many :effects, through: :card_effects

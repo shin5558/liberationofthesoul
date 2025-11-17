@@ -27,9 +27,15 @@ class BattleHand < ApplicationRecord
   belongs_to :battle
   belongs_to :card
 
-  # 所有者（プレイヤー or 敵）を多態関連で表現
-  belongs_to :owner, polymorphic: true
-
   enum owner_type: { player: 0, enemy: 1 }, _prefix: :owner
+
+  # （おまけ）実際のキャラを取りたいとき用の helper
+  def owner
+    case owner_type.to_sym
+    when :player then battle.player
+    when :enemy  then battle.enemy
+    end
+  end
+
   validates :slot_index, numericality: { only_integer: true }
 end

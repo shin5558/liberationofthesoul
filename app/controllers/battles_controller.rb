@@ -29,10 +29,9 @@ class BattlesController < ApplicationController
       flags: {}
       # HP 初期化は Battle の before_validation で base_hp から自動
     )
+    # ★ ここで無属性カードをランダムで1枚配布
+    assign_random_neutral_card(@battle)
   end
-
-  # ★ ここで先行権ターンを1進める
-  @battle.advance_priority_turn!
 
   def create
     pid = params[:player_id].presence || session[:player_id]
@@ -90,6 +89,9 @@ class BattlesController < ApplicationController
       'result' => result
     )
 
+    # ★ ここで先行権ターンを1進める
+    @battle.advance_priority_turn!
+
     @battle.flags = flags
     # ===== ログここまで ======
 
@@ -104,47 +106,63 @@ class BattlesController < ApplicationController
       # まだどちらもHP残っている → 通常のバトル画面（show）へ
       redirect_to battle_path(@battle)
     end
+  end
 
-    def show
-      @battle = Battle.find_by(id: params[:id]) or
-        return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
+  def show
+    @battle = Battle.find_by(id: params[:id]) or
+      return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
 
-      # 直近の結果表示用
-      @hand        = @battle.flags&.dig('player_hand')
-      @cpu_hand    = @battle.flags&.dig('cpu_hand')
-      @result      = @battle.flags&.dig('result')
+    # 直近の結果表示用
+    @hand        = @battle.flags&.dig('player_hand')
+    @cpu_hand    = @battle.flags&.dig('cpu_hand')
+    @result      = @battle.flags&.dig('result')
 
-      @hand_label     = HAND_LABELS[@hand]     || '未設定'
-      @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
+    @hand_label     = HAND_LABELS[@hand]     || '未設定'
+    @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
 
-      @result_text =
-        case @result&.to_sym
-        when :player_win then 'あなたの勝ち！'
-        when :cpu_win    then 'あなたの負け…'
-        when :draw       then '引き分け（+1回復）'
-        else                  '勝負あり'
-        end
-    end
+    @result_text =
+      case @result&.to_sym
+      when :player_win then 'あなたの勝ち！'
+      when :cpu_win    then 'あなたの負け…'
+      when :draw       then '引き分け（+1回復）'
+      else                  '勝負あり'
+      end
+  end
 
-    # ===============================
-    # ここから新規：リザルト画面
-    # ===============================
-    def result
-      @battle = Battle.find_by(id: params[:id]) or
-        return redirect_to(
-          new_battle_path(player_id: session[:player_id]),
-          alert: 'バトルが見つかりません。'
-        )
+  # ===============================
+  # ここから新規：リザルト画面
+  # ===============================
+  def result
+    @battle = Battle.find_by(id: params[:id]) or
+      return redirect_to(
+        new_battle_path(player_id: session[:player_id]),
+        alert: 'バトルが見つかりません。'
+      )
 
-      # まだ ongoing なら通常の show へ戻す
-      return redirect_to(battle_path(@battle)) if @battle.ongoing?
+    # まだ ongoing なら通常の show へ戻す
+    return redirect_to(battle_path(@battle)) if @battle.ongoing?
 
-      logs = (@battle.flags || {})['logs'] || []
+    logs = (@battle.flags || {})['logs'] || []
 
-      @turns_count = @battle.turns_count
-      @win_count   = logs.count { |log| log['result'] == 'player_win' }
-      @lose_count  = logs.count { |log| log['result'] == 'cpu_win' }
-      @draw_count  = logs.count { |log| log['result'] == 'draw' }
-    end
+    @turns_count = @battle.turns_count
+    @win_count   = logs.count { |log| log['result'] == 'player_win' }
+    @lose_count  = logs.count { |log| log['result'] == 'cpu_win' }
+    @draw_count  = logs.count { |log| log['result'] == 'draw' }
+  end
+
+  private
+
+  # 無属性カードを1枚ランダム付与
+  def assign_random_neutral_card(battle)
+    neutral_scope = Card.where(element_id: nil)
+    return if neutral_scope.blank?
+
+    card = neutral_scope.sample # Ruby側でランダム選択
+
+    battle.battle_hands.create!(
+      card: card,
+      owner_type: 'player',
+      owner_id: battle.player_id
+    )
   end
 end

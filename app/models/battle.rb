@@ -177,6 +177,17 @@ class Battle < ApplicationRecord
     end
   end
 
+  def assign_random_neutral_card!
+    neutral = Card.where(element_id: nil).order(Arel.sql('RAND()')).first
+    return unless neutral
+
+    # enum owner_type: { player: 0, enemy: 1 } を想定
+    battle_hands.build(
+      card: neutral,
+      owner_type: :player, # ★ enum のキーを渡す
+      owner_id: player_id # ★ プレイヤーのid
+    )
+  end
   # ----- ここまで追加 -----
 
   private
