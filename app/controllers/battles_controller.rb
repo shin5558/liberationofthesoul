@@ -91,7 +91,9 @@ class BattlesController < ApplicationController
 
     @battle.save!
 
-    redirect_to battle_path(@battle)
+    outcome = @battle.check_battle_end!
+
+    redirect_to battle_path(@battle), notice: outcome == :ongoing ? nil : 'バトル終了！'
   end
 
   def show
@@ -111,7 +113,7 @@ class BattlesController < ApplicationController
       when :player_win then 'あなたの勝ち！'
       when :cpu_win    then 'あなたの負け…'
       when :draw       then '引き分け（+1回復）'
-      else                  '判定不能'
+      else                  '勝負あり'
       end
   end
 end

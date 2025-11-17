@@ -69,6 +69,24 @@ class Battle < ApplicationRecord
     self.status = :won if enemy_hp <= 0
   end
 
+  # ★ ここに「戦闘終了チェック」を追加
+  # 戻り値 :ongoing / :win / :lose
+  def check_battle_end!
+    if player_hp <= 0
+      self.status = :lost
+      self.flags  = (flags || {}).merge('result' => 'lose')
+      save!
+      :lose
+    elsif enemy_hp <= 0
+      self.status = :won
+      self.flags  = (flags || {}).merge('result' => 'win')
+      save!
+      :win
+    else
+      :ongoing
+    end
+  end
+
   private
 
   def init_hp_on_create

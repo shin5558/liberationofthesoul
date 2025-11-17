@@ -1,13 +1,30 @@
-<h1>バトル結果（仮）</h1>
+<h1>バトル結果</h1>
+
+<%# ====== 勝利 / 敗北 / 継続 中 ====== %>
+<% if @battle.won? %>
+  <h2 style="color: green; margin-bottom: 8px;">
+    🎉 勝利！敵を倒しました！
+  </h2>
+<% elsif @battle.lost? %>
+  <h2 style="color: red; margin-bottom: 8px;">
+    💀 敗北...もう一度挑戦しよう！
+  </h2>
+<% else %>
+  <h2 style="margin-bottom: 8px;">
+    バトル継続中…
+  </h2>
+<% end %>
 
 <p>あなたの手: <strong><%= @hand_label %></strong></p>
 <p>敵の手:     <strong><%= @cpu_hand_label %></strong></p>
-<p style="font-size:1.2rem; margin: 12px 0;"><strong><%= @result_text %></strong></p>
+<p style="font-size:1.2rem; margin: 12px 0;">
+  <strong><%= @result_text %></strong>
+</p>
 
 <hr>
 
 <%# === プレイヤー HP === %>
-<% player = @battle.player %>
+<% player     = @battle.player %>
 <% player_max = player.base_hp %>
 <% player_now = @battle.player_hp %>
 <% player_pct = ((player_now.to_f / player_max) * 100).round %>
@@ -23,7 +40,7 @@
 </div>
 
 <%# === 敵 HP === %>
-<% enemy = @battle.enemy %>
+<% enemy     = @battle.enemy %>
 <% enemy_max = enemy.base_hp %>
 <% enemy_now = @battle.enemy_hp %>
 <% enemy_pct = ((enemy_now.to_f / enemy_max) * 100).round %>
@@ -37,8 +54,10 @@
     <div class="hp-fill enemy"></div>
   </div>
 </div>
+
 <hr style="margin: 20px 0;">
 
+<%# ====== 戦闘ログ ====== %>
 <% logs = (@battle.flags || {})['logs'] || [] %>
 
 <% if logs.present? %>
@@ -72,9 +91,21 @@
   </ul>
 <% end %>
 
-<%= link_to "もう一度戦う",
-            new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
-            class: "btn" %>
+<hr style="margin: 20px 0;">
+
+<%# ====== ボタン類 ====== %>
+<% if @battle.ongoing? %>
+  <%# まだHP残ってる → 次のターンへ（じゃんけん選択画面へ戻る） %>
+  <%= link_to "次のターンへ",
+              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
+              class: "btn" %>
+<% else %>
+  <%# HPが0になった → 勝利/敗北リザルトから再戦 %>
+  <%= link_to "もう一度戦う",
+              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
+              class: "btn" %>
+<% end %>
+
 <br><br>
 <%= link_to "トップに戻る", root_path, class: "btn" %>
 
@@ -86,7 +117,7 @@
       var fill = bar.querySelector('.hp-fill');
       if (!fill) return;
 
-      // 色（任意）：残量で色味を変える
+      // 色（残量で変化）
       fill.classList.remove('is-warn','is-danger');
       if (target <= 30) {
         fill.classList.add('is-danger');
@@ -94,7 +125,7 @@
         fill.classList.add('is-warn');
       }
 
-      // 初期は0% → 次フレームで目標% にして transition を効かせる
+      // アニメーション
       fill.style.width = '0%';
       requestAnimationFrame(function(){
         fill.style.width = target + '%';
@@ -102,7 +133,6 @@
     });
   }
 
-  // Turbo / 通常どちらでも動くよう両方フック
   document.addEventListener('turbo:load', applyHpBars);
   document.addEventListener('DOMContentLoaded', applyHpBars);
 })();
