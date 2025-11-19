@@ -28,15 +28,15 @@
 <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
   <%= button_to "グー ✊", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "g" },
-        class: "btn" %>
+        class: "btn jk-btn" %>
 
   <%= button_to "チョキ ✌️", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "t" },
-        class: "btn" %>
+        class: "btn jk-btn" %>
 
   <%= button_to "パー ✋", battles_path, method: :post,
         params: { player_id: @player.id, battle_id: @battle.id, hand: "p" },
-        class: "btn" %>
+        class: "btn jk-btn" %>
 </div>
 
 <br>

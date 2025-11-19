@@ -29,6 +29,17 @@ body {
   flex-direction: column;
 }
 
+/* ======= 全体の文字 ======= */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.7;
+  font-size: 16px;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
+
 
 .hp-wrap {
   margin: 12px 0 20px;
@@ -122,4 +133,64 @@ body {
 
 .flash--alert {
   background: #ffe0e0;
+}
+
+/* ======= ボタン ======= */
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  margin: 6px;
+  background: #2e73ff;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.15s;
+}
+
+.btn:hover {
+  background: #1d4fcc;
+}
+
+/* ======= じゃんけんボタン ======= */
+.jk-btn {
+  padding: 14px 22px;
+  font-size: 20px;
+  border-radius: 10px;
+  background: #000000;
+  border: 1px solid #ccc;
+}
+
+.jk-btn:hover {
+  background: #e9ecf2;
+}
+
+/* ======= 戦闘ログ ======= */
+.log-box {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.log-box ul {
+  padding-left: 18px;
+}
+
+.log-box li {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* ======= カードパネル ======= */
+.card-panel {
+  background: #fffdf7;
+  border: 1px solid #e3dcb9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
 }
