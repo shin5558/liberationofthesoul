@@ -7,10 +7,17 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
-  <body>
-    <!-- フラッシュはここだけ -->
-    <%= render "shared/flash" %>
+<body>
+  <header class="site-header">
+    Liberation of the Soul
+  </header>
 
+  <main class="site-main">
     <%= yield %>
-  </body>
+  </main>
+
+  <footer class="site-footer">
+    © 2025 Liberation of the Soul
+  </footer>
+</body>
 </html>
