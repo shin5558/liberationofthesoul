@@ -1,6 +1,9 @@
 class BattlesController < ApplicationController
   HAND_LABELS = { 'g' => 'グー', 't' => 'チョキ', 'p' => 'パー' }.freeze
 
+  # =========================
+  # バトル開始（作成だけして show へ飛ばす）
+  # =========================
   def new
     pid     = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
@@ -27,89 +30,24 @@ class BattlesController < ApplicationController
         status: :ongoing,
         turns_count: 0,
         flags: {}
-        # HP 初期化は Battle の before_validation で base_hp から自動
       )
 
-      # ★ 無属性カードをランダムで1枚配布（この時点では battle は new record じゃないのでOK）
+      # 無属性カード( slot_index:0 )を1枚配布
       @battle.assign_random_neutral_card!
+      # 通常手札 5 枚 (slot_index:1〜5)
+      @battle.prepare_initial_hands!
       @battle.save!
     end
 
-    # ★ 戦闘前（turns_count == 0）のときだけ、まだ未使用の無属性カードを探す
-    @neutral_hand =
-      if @battle.turns_count.zero?
-        @battle.battle_hands
-               .joins(:card)
-               .where(
-                 owner_type: 'player', # enum の中身が "player" なので文字列でOK
-                 consumed: false,
-                 cards: { element_id: nil }
-               )
-               .first
-      end
+    # ここではビューを表示しないで、メイン画面(show)へ
+    redirect_to battle_path(@battle)
   end
 
-  # 戦闘前に無属性カードを使う（M4-06）
-  def use_neutral_card
-    @battle = Battle.find_by(id: params[:id]) or begin
-      redirect_to new_battle_path(player_id: session[:player_id]),
-                  alert: 'バトルが見つかりません。'
-      return
-    end
-
-    # ★ 開戦後（turns_count > 0）は使用不可
-    if @battle.turns_count.positive?
-      redirect_to battle_path(@battle), alert: 'カードは戦闘前にしか使えません。'
-      return
-    end
-
-    # まだ未使用の無属性カードの手札を1枚探す
-    hand = @battle.battle_hands
-                  .joins(:card)
-                  .where(
-                    id: params[:hand_id],
-                    owner_type: 'player',
-                    owner_id: @battle.player_id,
-                    consumed: false,
-                    cards: { element_id: nil }
-                  )
-                  .first
-
-    unless hand
-      redirect_to new_battle_path(player_id: @battle.player_id),
-                  alert: '使用できるカードがありません。'
-      return
-    end
-
-    card = hand.card
-
-    # ★ カード効果を適用（M3-06 / M4-01 / M4-02 で作ったやつ）
-    CardEffectApplier.apply(battle: @battle, card: card)
-
-    # ★ 使用済みにする
-    hand.update!(consumed: true)
-
-    # （お好み）ログにも残したければ flags["logs"] に追加
-    flags = (@battle.flags || {}).deep_dup
-    logs  = flags['logs'] || []
-    logs << {
-      'turn' => 0, # 戦闘前なので 0 としておく
-      'mode' => 'pre_card',
-      'card_id' => card.id,
-      'card_name' => card.name,
-      'player_hp' => @battle.player_hp,
-      'enemy_hp' => @battle.enemy_hp
-    }
-    flags['logs'] = logs
-    @battle.flags = flags
-    @battle.save!
-
-    redirect_to new_battle_path(player_id: @battle.player_id),
-                notice: 'カードを使用しました。'
-  end
-
+  # =========================
+  # じゃんけん実行（リアルタイム進行）
+  # =========================
   def create
-    pid = params[:player_id].presence || session[:player_id]
+    pid     = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
     return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
 
@@ -120,29 +58,32 @@ class BattlesController < ApplicationController
 
     player_hand = params[:hand].presence
     unless HAND_LABELS.key?(player_hand)
-      return redirect_to new_battle_path(player_id: @player.id),
+      return redirect_to battle_path(@battle),
                          alert: '手の指定が不正です。'
     end
 
     cpu_hand = %w[g t p].sample
     result   = JankenJudgeService.resolve(player_hand, cpu_hand) # :player_win / :cpu_win / :draw
 
-    # --- HP反映 ---
+    # --- HP反映（バフ込みダメージ） ---
+    base_damage = 1
+
     case result
     when :player_win
-      @battle.damage_enemy!(1)       # 敵HP -1（0で勝利）
+      atk  = @battle.effective_attack_power(:player, base_damage)
+      defe = @battle.effective_defense(:enemy, 0)
+      dmg  = [atk - defe, 0].max
+      @battle.damage_enemy!(dmg)
     when :cpu_win
-      @battle.damage_player!(1)      # 自HP -1（0で敗北）
+      @battle.damage_player!(1)
     when :draw
-      # ひとまずの処理：双方 +1 回復（上限まで）
       @battle.heal_player!(1)
     end
 
     # ターン数と履歴フラグを更新
     @battle.turns_count += 1
-    # ==== ここから「ログ」追記 ====
-    flags = (@battle.flags || {}).deep_dup
 
+    flags = (@battle.flags || {}).deep_dup
     logs  = flags['logs'] || []
     logs << {
       'turn' => @battle.turns_count,
@@ -152,9 +93,8 @@ class BattlesController < ApplicationController
       'result' => result.to_s,
       'player_hp' => @battle.player_hp,
       'enemy_hp' => @battle.enemy_hp,
-      'first_actor' => @battle.current_priority_side || 'player' # デフォルトはplayer
+      'first_actor' => @battle.current_priority_side || 'player'
     }
-
     flags['logs'] = logs
 
     # 「最後の一手」情報も維持
@@ -164,33 +104,37 @@ class BattlesController < ApplicationController
       'result' => result
     )
 
-    # ★ ここで先行権ターンを1進める
+    # 先行権・バフのターンを進める
     @battle.advance_priority_turn!
+    @battle.tick_buffs!
 
     @battle.flags = flags
-    # ===== ログここまで ======
-
     @battle.save!
 
     outcome = @battle.check_battle_end!
 
     if @battle.won? || @battle.lost?
-      # HPが0 → 戦闘終了 → リザルト画面へ
       redirect_to result_battle_path(@battle)
     else
-      # まだどちらもHP残っている → 通常のバトル画面（show）へ
+      # ← new に戻らず、そのまま show に戻る
       redirect_to battle_path(@battle)
     end
   end
 
+  # =========================
+  # メイン戦闘画面（じゃんけん＋ログ＋手札）
+  # =========================
   def show
     @battle = Battle.find_by(id: params[:id]) or
-      return redirect_to new_battle_path(player_id: session[:player_id]), alert: 'バトルが見つかりません。'
+      return redirect_to(
+        new_battle_path(player_id: session[:player_id]),
+        alert: 'バトルが見つかりません。'
+      )
 
     # 直近の結果表示用
-    @hand        = @battle.flags&.dig('player_hand')
-    @cpu_hand    = @battle.flags&.dig('cpu_hand')
-    @result      = @battle.flags&.dig('result')
+    @hand     = @battle.flags&.dig('player_hand')
+    @cpu_hand = @battle.flags&.dig('cpu_hand')
+    @result   = @battle.flags&.dig('result')
 
     @hand_label     = HAND_LABELS[@hand]     || '未設定'
     @cpu_hand_label = HAND_LABELS[@cpu_hand] || '未設定'
@@ -202,11 +146,70 @@ class BattlesController < ApplicationController
       when :draw       then '引き分け（+1回復）'
       else                  '勝負あり'
       end
+
+    # ★ プレイヤーの未使用手札を「6枚」まで（0〜5）表示
+    @player_hands =
+      @battle.battle_hands
+             .includes(:card)
+             .where(owner_type: :player, owner_id: @battle.player_id, consumed: false)
+             .order(:slot_index)
+             .limit(6)
+
+    # バフ情報（プレイヤー / 敵）
+    @player_buffs = @battle.buffs_for(:player)
+    @enemy_buffs  = @battle.buffs_for(:enemy)
   end
 
-  # ===============================
-  # ここから新規：リザルト画面
-  # ===============================
+  # =========================
+  # 手札カードを使う（無属性も含む）
+  # =========================
+  def use_battle_card
+    @battle = Battle.find_by(id: params[:id]) or begin
+      redirect_to new_battle_path(player_id: session[:player_id]),
+                  alert: 'バトルが見つかりません。'
+      return
+    end
+
+    hand = @battle.battle_hands
+                  .includes(:card)
+                  .where(
+                    id: params[:hand_id],
+                    owner_type: :player,
+                    owner_id: @battle.player_id,
+                    consumed: false
+                  )
+                  .first
+
+    unless hand
+      redirect_to battle_path(@battle),
+                  alert: '使用できるカードがありません。'
+      return
+    end
+
+    card = hand.card
+
+    # 無属性カードは「戦闘前だけ使える」制限をかけたい場合
+    if card.element_id.nil? && @battle.turns_count.positive?
+      redirect_to battle_path(@battle),
+                  alert: '無属性カードは戦闘前にしか使えません。'
+      return
+    end
+
+    # カード効果適用（バフ／ダメージなど）
+    CardEffectApplier.apply(battle: @battle, card: card)
+
+    # 使用済みにする
+    hand.update!(consumed: true)
+
+    # ログに残したければここで追加しても OK（省略可）
+
+    redirect_to battle_path(@battle),
+                notice: 'カードを使用しました。'
+  end
+
+  # =========================
+  # リザルト画面
+  # =========================
   def result
     @battle = Battle.find_by(id: params[:id]) or
       return redirect_to(
@@ -214,7 +217,6 @@ class BattlesController < ApplicationController
         alert: 'バトルが見つかりません。'
       )
 
-    # まだ ongoing なら通常の show へ戻す
     return redirect_to(battle_path(@battle)) if @battle.ongoing?
 
     logs = (@battle.flags || {})['logs'] || []
@@ -227,17 +229,5 @@ class BattlesController < ApplicationController
 
   private
 
-  # 無属性カードを1枚ランダム付与
-  def assign_random_neutral_card(battle)
-    neutral_scope = Card.where(element_id: nil)
-    return if neutral_scope.blank?
-
-    card = neutral_scope.sample # Ruby側でランダム選択
-
-    battle.battle_hands.create!(
-      card: card,
-      owner_type: 'player',
-      owner_id: battle.player_id
-    )
-  end
+  # （※ assign_random_neutral_card! は Battle モデル側にあるのでここでは使わない）
 end

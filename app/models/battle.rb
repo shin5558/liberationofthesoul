@@ -49,6 +49,27 @@ class Battle < ApplicationRecord
     enemy&.base_hp.presence || 5
   end
 
+  # 戦闘開始時に、プレイヤー用の手札5枚を配る想定
+  def prepare_initial_hands!
+    # すでに通常手札（slot_index 1〜5）があれば何もしない
+    existing = battle_hands
+               .where(owner_type: :player, owner_id: player_id)
+               .where('slot_index >= 1')
+    return if existing.exists?
+
+    candidates = Card.where.not(element_id: nil)
+
+    5.times do |i|
+      card = candidates.sample
+      battle_hands.build(
+        card: card,
+        owner_type: :player,
+        owner_id: player_id,
+        slot_index: i + 1 # ★ 1,2,3,4,5 にする
+      )
+    end
+  end
+
   # --- 回復 ---
   def heal_player!(amount = HEAL_AMOUNT)
     self.player_hp = [player_hp + amount, player_max_hp].min
@@ -185,7 +206,8 @@ class Battle < ApplicationRecord
     battle_hands.build(
       card: neutral,
       owner_type: :player, # ★ enum のキーを渡す
-      owner_id: player_id # ★ プレイヤーのid
+      owner_id: player_id, # ★ プレイヤーのid
+      slot_index: 0 # 無属性専用スロット
     )
   end
   # ----- ここまで追加 -----

@@ -1,4 +1,6 @@
-<h1>バトル結果</h1>
+
+<turbo-frame id="battle-board">
+<h1>バトル</h1>
 
 <%# ====== 勝利 / 敗北 / 継続 中 ====== %>
 <% if @battle.won? %>
@@ -22,6 +24,35 @@
 </p>
 
 <hr>
+
+<p>出す手を選んでください:</p>
+<div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
+
+  <%= button_to "グー ✊",
+        battles_path,
+        method: :post,
+        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "g" },
+        form: { data: { turbo_frame: "battle-board" } },
+        class: "btn" %>
+
+  <%= button_to "チョキ ✌️",
+        battles_path,
+        method: :post,
+        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "t" },
+        form: { data: { turbo_frame: "battle-board" } },
+        class: "btn" %>
+
+  <%= button_to "パー ✋",
+        battles_path,
+        method: :post,
+        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "p" },
+        form: { data: { turbo_frame: "battle-board" } },
+        class: "btn" %>
+
+</div>
+
+<hr>
+
 
 <%# === プレイヤー HP === %>
 <% player     = @battle.player %>
@@ -60,6 +91,77 @@
 <%# ====== 戦闘ログ ====== %>
 <% logs = (@battle.flags || {})['logs'] || [] %>
 
+<%# === ここから追加：バフ状態表示 === %>
+<% player_buffs = @battle.buffs_for(:player) %>
+<% enemy_buffs  = @battle.buffs_for(:enemy) %>
+
+<div style="display:flex; gap:24px; margin-bottom:16px; font-size:14px;">
+  <div>
+    <h3 style="margin-bottom:4px;">プレイヤーのバフ</h3>
+    <% if player_buffs.present? %>
+      <ul style="padding-left:16px; list-style:disc;">
+        <% player_buffs.each do |stat, info| %>
+          <% label =
+               case stat.to_s
+               when 'attack'  then '攻撃'
+               when 'defense' then '防御'
+               when 'speed'   then '速度'
+               else stat.to_s
+               end %>
+          <li>
+            <%= label %>
+            <%= info['value'] >= 0 ? "+#{info['value']}" : info['value'] %>
+            （残り <%= info['turns'] %> ターン）
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p style="color:#666;">バフなし</p>
+    <% end %>
+  </div>
+
+</div>
+<%# === 追加ここまで === %>
+
+<%# --- 手札一覧 --- %>
+<h2>手札</h2>
+<% if @player_hands.present? %>
+  <div style="display:flex;
+              flex-wrap:nowrap;         /* ★ 一列に並べる */
+              gap:8px;                  /* ★ ちょっとだけ狭く */
+              overflow-x:auto;          /* ★ 横スクロール許可 */
+              padding-bottom:4px;">
+
+    <% @player_hands.each do |hand| %>
+      <% card = hand.card %>
+      <div
+        style="
+          border:1px solid #ccc;
+          padding:6px;          /* ★ パディングも少し減らす */
+          min-width:150px;      /* ★ 幅も少しだけ細めに */
+          flex:0 0 auto;">
+
+          
+        <strong><%= card.name %></strong>
+        <p style="font-size:0.9rem;"><%= card.description %></p>
+
+        <%# ここでは「このカードを使う」ボタンだけ %>
+        <% unless hand.consumed? %>
+          <%= button_to "このカードを使う",
+                use_battle_card_battle_path(@battle),
+                method: :post,
+                params: { hand_id: hand.id },
+                class: "btn" %>
+        <% else %>
+          <p style="color:gray; font-size:0.8rem;">使用済み</p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p>手札はありません。</p>
+<% end %>
+
 <% if logs.present? %>
   <h2 style="margin-top:24px; margin-bottom:8px;">戦闘ログ</h2>
 
@@ -95,10 +197,7 @@
 
 <%# ====== ボタン類 ====== %>
 <% if @battle.ongoing? %>
-  <%# まだHP残ってる → 次のターンへ（じゃんけん選択画面へ戻る） %>
-  <%= link_to "次のターンへ",
-              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
-              class: "btn" %>
+
 <% else %>
   <%# HPが0になった → 勝利/敗北リザルトから再戦 %>
   <%= link_to "もう一度戦う",
@@ -137,3 +236,5 @@
   document.addEventListener('DOMContentLoaded', applyHpBars);
 })();
 </script>
+
+</turbo-frame>
