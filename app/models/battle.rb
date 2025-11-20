@@ -1,30 +1,3 @@
-# == Schema Information
-#
-# Table name: battles
-#
-#  id          :bigint           not null, primary key
-#  ended_at    :datetime
-#  enemy_hp    :integer          default(5), not null
-#  flags       :json             not null
-#  player_hp   :integer          default(5), not null
-#  started_at  :datetime
-#  status      :integer          default("ongoing"), not null
-#  turns_count :integer          default(0), not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  enemy_id    :bigint           not null
-#  player_id   :bigint           not null
-#
-# Indexes
-#
-#  index_battles_on_enemy_id   (enemy_id)
-#  index_battles_on_player_id  (player_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (enemy_id => enemies.id)
-#  fk_rails_...  (player_id => players.id)
-#
 class Battle < ApplicationRecord
   belongs_to :player
   belongs_to :enemy
@@ -134,6 +107,8 @@ class Battle < ApplicationRecord
 
     f['buffs'][side.to_s][stat.to_s] = current
     self.flags = f
+    # ★ ここを追加：バフを追加したらその場で保存
+    save!
   end
 
   # ターン終了時などに呼んで「残りターン」を1減らす

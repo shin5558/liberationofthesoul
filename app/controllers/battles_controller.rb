@@ -47,32 +47,37 @@ class BattlesController < ApplicationController
   # じゃんけん実行（リアルタイム進行）
   # =========================
   def create
-    pid     = params[:player_id].presence || session[:player_id]
+    pid = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
     return redirect_to new_character_path, alert: '先にキャラクターを作成してください。' unless @player
 
-    # 進行中バトルを掴む（明示指定があれば優先）
     @battle = Battle.find_by(id: params[:battle_id], player: @player) ||
               Battle.find_by(player: @player, status: :ongoing)
     return redirect_to new_battle_path(player_id: @player.id), alert: 'バトルが見つかりません。' unless @battle
 
     player_hand = params[:hand].presence
     unless HAND_LABELS.key?(player_hand)
-      return redirect_to battle_path(@battle),
+      return redirect_to new_battle_path(player_id: @player.id),
                          alert: '手の指定が不正です。'
     end
 
     cpu_hand = %w[g t p].sample
     result   = JankenJudgeService.resolve(player_hand, cpu_hand) # :player_win / :cpu_win / :draw
 
-    # --- HP反映（バフ込みダメージ） ---
+    # ★ このターン開始時点のバフを「コピー」してスナップショット
+    buffs_before_player = @battle.buffs_for(:player).deep_dup
+
+    # --- HP反映 ---
     base_damage = 1
+    dmg        = 0
+    calc_atk   = nil
+    calc_def   = nil
 
     case result
     when :player_win
-      atk  = @battle.effective_attack_power(:player, base_damage)
-      defe = @battle.effective_defense(:enemy, 0)
-      dmg  = [atk - defe, 0].max
+      calc_atk = @battle.effective_attack_power(:player, base_damage)
+      calc_def = @battle.effective_defense(:enemy, 0)
+      dmg      = [calc_atk - calc_def, 0].max
       @battle.damage_enemy!(dmg)
     when :cpu_win
       @battle.damage_player!(1)
@@ -80,33 +85,21 @@ class BattlesController < ApplicationController
       @battle.heal_player!(1)
     end
 
-    # ターン数と履歴フラグを更新
     @battle.turns_count += 1
 
-    flags = (@battle.flags || {}).deep_dup
-    logs  = flags['logs'] || []
-    logs << {
-      'turn' => @battle.turns_count,
-      'mode' => (params[:mode] == 'heal' ? 'heal' : 'attack'),
-      'player_hand' => player_hand,
-      'cpu_hand' => cpu_hand,
-      'result' => result.to_s,
-      'player_hp' => @battle.player_hp,
-      'enemy_hp' => @battle.enemy_hp,
-      'first_actor' => @battle.current_priority_side || 'player'
-    }
-    flags['logs'] = logs
+    # ★ ここで先行権＆バフの残りターンを進める
+    @battle.advance_priority_turn!
+    @battle.tick_buffs!
 
-    # 「最後の一手」情報も維持
+    # ★ tick_buffs! まで終わった「最新の flags」をベースにログを載せる
+    flags = (@battle.flags || {}).deep_dup
+
+    # 「最後の一手」も flags に保持
     flags.merge!(
       'player_hand' => player_hand,
       'cpu_hand' => cpu_hand,
       'result' => result
     )
-
-    # 先行権・バフのターンを進める
-    @battle.advance_priority_turn!
-    @battle.tick_buffs!
 
     @battle.flags = flags
     @battle.save!
@@ -116,7 +109,6 @@ class BattlesController < ApplicationController
     if @battle.won? || @battle.lost?
       redirect_to result_battle_path(@battle)
     else
-      # ← new に戻らず、そのまま show に戻る
       redirect_to battle_path(@battle)
     end
   end
@@ -201,10 +193,31 @@ class BattlesController < ApplicationController
     # 使用済みにする
     hand.update!(consumed: true)
 
-    # ログに残したければここで追加しても OK（省略可）
+    # ★ ここを追加：CardEffectApplier で更新された flags を取り直す
+    @battle.reload
 
-    redirect_to battle_path(@battle),
-                notice: 'カードを使用しました。'
+    # ★ ログ用の flags/logs を準備
+    flags = (@battle.flags || {}).deep_dup
+    logs  = flags['logs'] || []
+
+    logs << {
+      'turn' => 0,              # 戦闘前なので 0
+      'mode' => 'pre_card_use', # 区別用ラベル
+      'card_id' => card.id,
+      'card_name' => card.name,
+      'player_hp' => @battle.player_hp,
+      'enemy_hp' => @battle.enemy_hp,
+      'buffs' => {
+        'player' => @battle.buffs_for(:player)
+        # 敵のバフは使わないので省略
+      }
+    }
+
+    flags['logs'] = logs
+    @battle.flags = flags
+    @battle.save!
+
+    redirect_to battle_path(@battle), notice: 'カードを使用しました。'
   end
 
   # =========================

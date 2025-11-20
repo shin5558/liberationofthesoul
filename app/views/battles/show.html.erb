@@ -1,4 +1,3 @@
-
 <turbo-frame id="battle-board">
 <h1>バトル</h1>
 
@@ -53,7 +52,6 @@
 
 <hr>
 
-
 <%# === プレイヤー HP === %>
 <% player     = @battle.player %>
 <% player_max = player.base_hp %>
@@ -88,12 +86,11 @@
 
 <hr style="margin: 20px 0;">
 
-<%# ====== 戦闘ログ ====== %>
-<% logs = (@battle.flags || {})['logs'] || [] %>
+<%# ====== （戦闘ログは現在非表示） ====== %>
+<%# logs = (@battle.flags || {})['logs'] || [] %>
 
-<%# === ここから追加：バフ状態表示 === %>
+<%# === バフ状態表示（プレイヤー） === %>
 <% player_buffs = @battle.buffs_for(:player) %>
-<% enemy_buffs  = @battle.buffs_for(:enemy) %>
 
 <div style="display:flex; gap:24px; margin-bottom:16px; font-size:14px;">
   <div>
@@ -119,17 +116,15 @@
       <p style="color:#666;">バフなし</p>
     <% end %>
   </div>
-
 </div>
-<%# === 追加ここまで === %>
 
 <%# --- 手札一覧 --- %>
 <h2>手札</h2>
 <% if @player_hands.present? %>
   <div style="display:flex;
-              flex-wrap:nowrap;         /* ★ 一列に並べる */
-              gap:8px;                  /* ★ ちょっとだけ狭く */
-              overflow-x:auto;          /* ★ 横スクロール許可 */
+              flex-wrap:nowrap;         /* 一列に並べる */
+              gap:8px;                  /* 少し狭め */
+              overflow-x:auto;          /* 横スクロール許可 */
               padding-bottom:4px;">
 
     <% @player_hands.each do |hand| %>
@@ -137,15 +132,13 @@
       <div
         style="
           border:1px solid #ccc;
-          padding:6px;          /* ★ パディングも少し減らす */
-          min-width:150px;      /* ★ 幅も少しだけ細めに */
+          padding:6px;
+          min-width:150px;
           flex:0 0 auto;">
 
-          
         <strong><%= card.name %></strong>
         <p style="font-size:0.9rem;"><%= card.description %></p>
 
-        <%# ここでは「このカードを使う」ボタンだけ %>
         <% unless hand.consumed? %>
           <%= button_to "このカードを使う",
                 use_battle_card_battle_path(@battle),
@@ -162,42 +155,11 @@
   <p>手札はありません。</p>
 <% end %>
 
-<% if logs.present? %>
-  <h2 style="margin-top:24px; margin-bottom:8px;">戦闘ログ</h2>
-
-  <ul style="list-style:disc; padding-left:20px; font-size:14px;">
-    <% logs.each do |log| %>
-      <li style="margin-bottom:4px;">
-        ターン <%= log['turn'] %>：
-        <% if log['mode'] == 'heal' %>
-          回復行動 → プレイヤーHP <%= log['player_hp'] %> / 敵HP <%= log['enemy_hp'] %>
-        <% else %>
-          あなた：
-          <%= BattlesController::HAND_LABELS[log['player_hand']] || '-' %> /
-          敵：
-          <%= BattlesController::HAND_LABELS[log['cpu_hand']] || '-' %> →
-          <% case log['result'] %>
-          <% when 'player_win' %>
-            あなたの勝ち！
-          <% when 'cpu_win' %>
-            あなたの負け…
-          <% when 'draw' %>
-            引き分け（回復）
-          <% else %>
-            結果不明
-          <% end %>
-          （HP あなた: <%= log['player_hp'] %> / 敵: <%= log['enemy_hp'] %>）
-        <% end %>
-      </li>
-    <% end %>
-  </ul>
-<% end %>
-
 <hr style="margin: 20px 0;">
 
 <%# ====== ボタン類 ====== %>
 <% if @battle.ongoing? %>
-
+  <%# 進行中なら特に追加ボタンなし（上のじゃんけんボタンで続行） %>
 <% else %>
   <%# HPが0になった → 勝利/敗北リザルトから再戦 %>
   <%= link_to "もう一度戦う",
