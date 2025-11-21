@@ -136,7 +136,7 @@ class BattlesController < ApplicationController
       when :player_win then 'あなたの勝ち！'
       when :cpu_win    then 'あなたの負け…'
       when :draw       then '引き分け（+1回復）'
-      else                  '勝負あり'
+      else                  'カードまたは手を選んでください'
       end
 
     # ★ プレイヤーの未使用手札を「6枚」まで（0〜5）表示
