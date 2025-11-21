@@ -1,5 +1,4 @@
 <turbo-frame id="battle-board">
-<h1>バトル</h1>
 
 <%# ====== 勝利 / 敗北 / 継続 中 ====== %>
 <% if @battle.won? %>
@@ -22,9 +21,6 @@
   <strong><%= @result_text %></strong>
 </p>
 
-<hr>
-
-<p>出す手を選んでください:</p>
 <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
 
   <%= button_to "グー ✊",
@@ -50,41 +46,40 @@
 
 </div>
 
-<hr>
-
-<%# === プレイヤー HP === %>
+<%# === プレイヤー / 敵 HP を横並びで表示 === %>
 <% player     = @battle.player %>
 <% player_max = player.base_hp %>
 <% player_now = @battle.player_hp %>
 <% player_pct = ((player_now.to_f / player_max) * 100).round %>
 
-<div class="hp-wrap">
-  <div class="hp-head">
-    <span>プレイヤー：<%= player.name %></span>
-    <span><%= player_now %> / <%= player_max %> HP</span>
-  </div>
-  <div class="hp-bar" data-target="<%= player_pct %>">
-    <div class="hp-fill player"></div>
-  </div>
-</div>
-
-<%# === 敵 HP === %>
 <% enemy     = @battle.enemy %>
 <% enemy_max = enemy.base_hp %>
 <% enemy_now = @battle.enemy_hp %>
 <% enemy_pct = ((enemy_now.to_f / enemy_max) * 100).round %>
 
-<div class="hp-wrap">
-  <div class="hp-head">
-    <span>敵：<%= enemy.name %></span>
-    <span><%= enemy_now %> / <%= enemy_max %> HP</span>
+<div class="hp-area">
+  <div class="hp-wrap">
+    <div class="hp-head">
+      <span>プレイヤー：<%= player.name %></span>
+      <span><%= player_now %> / <%= player_max %> HP</span>
+    </div>
+    <div class="hp-bar" data-target="<%= player_pct %>">
+      <div class="hp-fill player"></div>
+    </div>
   </div>
-  <div class="hp-bar" data-target="<%= enemy_pct %>">
-    <div class="hp-fill enemy"></div>
+
+  <div class="hp-wrap">
+    <div class="hp-head">
+      <span>敵：<%= enemy.name %></span>
+      <span><%= enemy_now %> / <%= enemy_max %> HP</span>
+    </div>
+    <div class="hp-bar" data-target="<%= enemy_pct %>">
+      <div class="hp-fill enemy"></div>
+    </div>
   </div>
 </div>
 
-<hr style="margin: 20px 0;">
+<hr style="margin: 12px 0;">
 
 <%# ====== （戦闘ログは現在非表示） ====== %>
 <%# logs = (@battle.flags || {})['logs'] || [] %>
@@ -167,7 +162,6 @@
               class: "btn" %>
 <% end %>
 
-<br><br>
 <%= link_to "トップに戻る", root_path, class: "btn" %>
 
 <script>

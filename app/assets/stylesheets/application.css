@@ -32,17 +32,28 @@ body {
 /* ======= 全体の文字 ======= */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.7;
-  font-size: 16px;
+  line-height: 1.4;
+  font-size: 15px;
   color: #222;
   margin: 0;
   padding: 0;
 }
 
+h1, h2 {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
 
+/* 追加：HP全体を横並びにする */
+.hp-area {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;          /* ← 16〜24 だと広すぎるので 12 に */
+}
 
+/* ここは「数字を減らす」と良いところ */
 .hp-wrap {
-  margin: 12px 0 20px;
+  margin: 4px 0 10px;   /* 元: 12px 0 20px → 半分くらいに */
 }
 
 .hp-head {
@@ -88,9 +99,10 @@ body {
 /* ==============================
    メイン（残り全部）
    ============================== */
+/* 元: padding: 24px; を少し詰める */
 .site-main {
-  flex: 1;                       /* ← 高さの残り全部を使う */
-  padding: 24px;
+  flex: 1;
+  padding: 12px 16px;   /* ← 上下12 / 左右16 にするとかなり詰まる */
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
