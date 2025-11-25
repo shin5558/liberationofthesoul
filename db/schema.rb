@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_13_013939) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_25_034513) do
   create_table "battle_actions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "battle_turn_id", null: false
     t.integer "actor_type", default: 0, null: false
@@ -125,6 +125,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_13_013939) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "code"
+    t.index ["code"], name: "index_enemies_on_code", unique: true
     t.index ["element_id"], name: "index_enemies_on_element_id"
   end
 
@@ -158,6 +160,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_13_013939) do
     t.index ["element_id"], name: "index_players_on_element_id"
   end
 
+  create_table "story_progresses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "player_id", null: false
+    t.string "current_step", default: "prologue", null: false
+    t.json "flags", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id"], name: "index_story_progresses_on_player_id"
+  end
+
   add_foreign_key "battle_actions", "battle_turns"
   add_foreign_key "battle_actions", "cards"
   add_foreign_key "battle_actions", "effects"
@@ -174,4 +185,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_13_013939) do
   add_foreign_key "npc_lines", "effects"
   add_foreign_key "npc_lines", "npc_characters"
   add_foreign_key "players", "elements"
+  add_foreign_key "story_progresses", "players"
 end

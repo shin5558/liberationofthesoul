@@ -5,8 +5,9 @@ class BattlesController < ApplicationController
   # バトル開始（作成だけして show へ飛ばす）
   # =========================
   def new
-    pid     = params[:player_id].presence || session[:player_id]
+    pid = params[:player_id].presence || session[:player_id]
     @player = Player.find_by(id: pid)
+
     unless @player
       redirect_to new_character_path, alert: '先にキャラクターを作成してください。'
       return
@@ -14,16 +15,20 @@ class BattlesController < ApplicationController
 
     session[:player_id] = @player.id
 
-    # 進行中があればそれを使う。なければここで作る
+    # 進行中バトルがあればそれを再利用
     @battle = Battle.find_by(player: @player, status: :ongoing)
 
     unless @battle
-      enemy = Enemy.first
+      # ★ enemy_type → ここで決める
+      enemy_code = params[:enemy_type].presence || 'goblin'
+
+      enemy = Enemy.find_by(code: enemy_code)
       unless enemy
-        redirect_to root_path, alert: '敵データがありません。'
+        redirect_to root_path, alert: "指定された敵（#{enemy_code}）が存在しません。"
         return
       end
 
+      # ★ バトル作成
       @battle = Battle.create!(
         player: @player,
         enemy: enemy,
@@ -32,14 +37,15 @@ class BattlesController < ApplicationController
         flags: {}
       )
 
-      # 無属性カード( slot_index:0 )を1枚配布
+      # ★ 無属性カード 1 枚
       @battle.assign_random_neutral_card!
-      # 通常手札 5 枚 (slot_index:1〜5)
+
+      # ★ 通常手札 5 枚
       @battle.prepare_initial_hands!
+
       @battle.save!
     end
 
-    # ここではビューを表示しないで、メイン画面(show)へ
     redirect_to battle_path(@battle)
   end
 

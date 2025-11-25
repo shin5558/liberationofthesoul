@@ -5,7 +5,7 @@
 #  id             :bigint           not null, primary key
 #  duration_turns :integer
 #  formula        :text(65535)      not null
-#  kind           :integer          default("damage"), not null
+#  kind           :integer          default("heal"), not null
 #  name           :string(255)      not null
 #  priority       :integer          default(0), not null
 #  target         :integer          default("player"), not null

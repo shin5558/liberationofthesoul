@@ -5,6 +5,7 @@
 #  id          :bigint           not null, primary key
 #  base_hp     :integer          default(5), not null
 #  boss        :boolean          default(FALSE), not null
+#  code        :string(255)
 #  description :text(65535)
 #  flags       :json             not null
 #  name        :string(255)      not null
@@ -14,6 +15,7 @@
 #
 # Indexes
 #
+#  index_enemies_on_code        (code) UNIQUE
 #  index_enemies_on_element_id  (element_id)
 #
 # Foreign Keys
