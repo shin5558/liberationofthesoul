@@ -20,7 +20,12 @@
 <p style="font-size:1.2rem; margin: 12px 0;">
   <strong><%= @result_text %></strong>
 </p>
-
+<p>出す手を選んでください:</p>
+<% unless @can_janken %>
+  <p style="color:#c00; font-size:0.9rem;">
+    ※ 先にカードを1枚使ってください
+  </p>
+<% end %>
 <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
 
   <%= button_to "グー ✊",
@@ -124,24 +129,37 @@
 
     <% @player_hands.each do |hand| %>
       <% card = hand.card %>
+      <% ct   = @battle.card_ct_for(hand.id) %>  <%# ←★ これを必ず書く！ %>
+
       <div
         style="
           border:1px solid #ccc;
           padding:6px;
           min-width:150px;
-          flex:0 0 auto;">
+          flex:0 0 auto;
+          opacity:<%= (hand.consumed? || ct > 0) ? 0.4 : 1.0 %>;">  <%# ← CT/使用済みなら薄く %>
+
 
         <strong><%= card.name %></strong>
         <p style="font-size:0.9rem;"><%= card.description %></p>
 
-        <% unless hand.consumed? %>
+        <% if hand.consumed? %>
+          <p style="color:gray; font-size:0.8rem;">使用済み</p>
+
+        <% elsif ct > 0 %>
+          <p style="color:red; font-size:0.85rem;">
+            使用まで残り <%= ct %> ターン
+          </p>
+          <button class="btn" disabled style="background:#666;">
+            使用不可
+          </button>
+
+        <% else %>
           <%= button_to "このカードを使う",
                 use_battle_card_battle_path(@battle),
                 method: :post,
                 params: { hand_id: hand.id },
                 class: "btn" %>
-        <% else %>
-          <p style="color:gray; font-size:0.8rem;">使用済み</p>
         <% end %>
       </div>
     <% end %>

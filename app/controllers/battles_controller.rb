@@ -55,6 +55,14 @@ class BattlesController < ApplicationController
               Battle.find_by(player: @player, status: :ongoing)
     return redirect_to new_battle_path(player_id: @player.id), alert: 'バトルが見つかりません。' unless @battle
 
+    flags = (@battle.flags || {}).deep_dup
+
+    # ★ 先にカードを使わせたいならここでチェック
+    unless flags['can_janken']
+      return redirect_to battle_path(@battle),
+                         alert: '先にカードを1枚使ってください。'
+    end
+
     player_hand = params[:hand].presence
     unless HAND_LABELS.key?(player_hand)
       return redirect_to new_battle_path(player_id: @player.id),
@@ -62,12 +70,11 @@ class BattlesController < ApplicationController
     end
 
     cpu_hand = %w[g t p].sample
-    result   = JankenJudgeService.resolve(player_hand, cpu_hand) # :player_win / :cpu_win / :draw
+    result   = JankenJudgeService.resolve(player_hand, cpu_hand)
 
-    # ★ このターン開始時点のバフを「コピー」してスナップショット
-    buffs_before_player = @battle.buffs_for(:player).deep_dup
+    # このターン開始時点のバフ（ログ用／バフ消去判定用）
+    buffs_before_player = @battle.buffs_for(:player)
 
-    # --- HP反映 ---
     base_damage = 1
     dmg        = 0
     calc_atk   = nil
@@ -87,21 +94,47 @@ class BattlesController < ApplicationController
 
     @battle.turns_count += 1
 
-    # ★ ここで先行権＆バフの残りターンを進める
-    @battle.advance_priority_turn!
-    @battle.tick_buffs!
+    logs = flags['logs'] || []
+    logs << {
+      'turn' => @battle.turns_count,
+      'mode' => (params[:mode] == 'heal' ? 'heal' : 'attack'),
+      'player_hand' => player_hand,
+      'cpu_hand' => cpu_hand,
+      'result' => result.to_s,
+      'player_hp' => @battle.player_hp,
+      'enemy_hp' => @battle.enemy_hp,
+      'first_actor' => @battle.current_priority_side || 'player',
+      'damage' => dmg,
+      'calc_atk' => calc_atk,
+      'calc_def' => calc_def,
+      'buffs' => {
+        'player' => buffs_before_player
+      }
+    }
+    flags['logs'] = logs
 
-    # ★ tick_buffs! まで終わった「最新の flags」をベースにログを載せる
-    flags = (@battle.flags || {}).deep_dup
-
-    # 「最後の一手」も flags に保持
     flags.merge!(
       'player_hand' => player_hand,
       'cpu_hand' => cpu_hand,
       'result' => result
     )
 
+    # 次のターン用フラグリセット
+    flags['card_used_in_turn'] = false
+    flags['can_janken']        = false
+
+    # ここで一旦 flags を反映
     @battle.flags = flags
+
+    # ★ 攻撃バフは「このじゃんけん1回だけ」有効にしたいので、
+    #   このターンの攻撃バフがあった場合はここで消す
+    @battle.clear_buff!(side: :player, stat: :attack) if buffs_before_player['attack'].present?
+
+    # 先行権、バフの残りターン、カードCTを進める
+    @battle.advance_priority_turn!
+    @battle.tick_buffs!
+    @battle.tick_card_ct!
+
     @battle.save!
 
     outcome = @battle.check_battle_end!
@@ -149,7 +182,9 @@ class BattlesController < ApplicationController
 
     # バフ情報（プレイヤー / 敵）
     @player_buffs = @battle.buffs_for(:player)
-    @enemy_buffs  = @battle.buffs_for(:enemy)
+
+    # ★ じゃんけんしていい状態かどうか
+    @can_janken = @battle.flags&.dig('can_janken') == true
   end
 
   # =========================
@@ -180,44 +215,71 @@ class BattlesController < ApplicationController
 
     card = hand.card
 
-    # 無属性カードは「戦闘前だけ使える」制限をかけたい場合
+    # 無属性カードは「戦闘前だけ使える」制限
     if card.element_id.nil? && @battle.turns_count.positive?
       redirect_to battle_path(@battle),
                   alert: '無属性カードは戦闘前にしか使えません。'
       return
     end
 
-    # カード効果適用（バフ／ダメージなど）
+    # ★ このターンですでにカード使用済みなら禁止
+    flags = (@battle.flags || {}).deep_dup
+    if flags['card_used_in_turn']
+      redirect_to battle_path(@battle),
+                  alert: 'このターンではすでにカードを使っています。'
+      return
+    end
+
+    # ★ カードごとのクールタイムチェック
+    ct = @battle.card_ct_for(hand.id)
+    if ct > 0
+      redirect_to battle_path(@battle),
+                  alert: "このカードはあと #{ct} ターン使用できません。"
+      return
+    end
+
+    # カード効果適用（バフ／ダメージ／回復など）
     CardEffectApplier.apply(battle: @battle, card: card)
 
-    # 使用済みにする
-    hand.update!(consumed: true)
+    # 無属性カードだけ消費したい場合
+    hand.update!(consumed: true) if card.element_id.nil?
 
-    # ★ ここを追加：CardEffectApplier で更新された flags を取り直す
+    # 効果反映後の状態で flags を取り直す
     @battle.reload
-
-    # ★ ログ用の flags/logs を準備
     flags = (@battle.flags || {}).deep_dup
-    logs  = flags['logs'] || []
 
+    # このターンはカード使用済み & じゃんけん可能
+    flags['card_used_in_turn'] = true
+    flags['can_janken']        = true
+
+    logs = flags['logs'] || []
     logs << {
-      'turn' => 0,              # 戦闘前なので 0
-      'mode' => 'pre_card_use', # 区別用ラベル
+      'turn' => 0,
+      'mode' => 'pre_card_use',
       'card_id' => card.id,
       'card_name' => card.name,
       'player_hp' => @battle.player_hp,
       'enemy_hp' => @battle.enemy_hp,
       'buffs' => {
         'player' => @battle.buffs_for(:player)
-        # 敵のバフは使わないので省略
       }
     }
-
     flags['logs'] = logs
+
+    # ★ 先に flags を全部反映してから CT セット（ここが重要）
     @battle.flags = flags
+
+    # ★ クールタイムを「3」にすると、実質 2ターンの間使えない
+    #   ・このターンで使う → CT=3
+    #   ・ターン終了で tick_card_ct! により 2
+    #   ・次のターン終了で 1
+    #   ・次のターン終了で 0 → その次のターンから再使用可
+    @battle.set_card_ct!(hand.id, 3)
+
     @battle.save!
 
-    redirect_to battle_path(@battle), notice: 'カードを使用しました。'
+    redirect_to battle_path(@battle),
+                notice: 'カードを使用しました。'
   end
 
   # =========================

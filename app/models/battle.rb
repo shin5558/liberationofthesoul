@@ -101,11 +101,11 @@ class Battle < ApplicationRecord
     f['buffs'] ||= {}
     f['buffs'][side.to_s] ||= {}
 
-    current = f['buffs'][side.to_s][stat.to_s] || { 'value' => 0, 'turns' => 0 }
-    current['value'] += amount
-    current['turns']  = [current['turns'], duration_turns.to_i].max
-
-    f['buffs'][side.to_s][stat.to_s] = current
+    # ★ ここを「加算」ではなく「上書き」にする
+    f['buffs'][side.to_s][stat.to_s] = {
+      'value' => amount,
+      'turns' => duration_turns.to_i
+    }
     self.flags = f
     # ★ ここを追加：バフを追加したらその場で保存
     save!
@@ -126,6 +126,43 @@ class Battle < ApplicationRecord
 
     buffs.delete_if { |_side, stats| stats.blank? }
     f['buffs'] = buffs
+    self.flags = f
+  end
+
+  def card_ct_for(card_id)
+    (flags || {}).dig('card_ct', card_id.to_s).to_i
+  end
+
+  # 指定カードIDにCTをセットする
+  def set_card_ct!(hand_id, turns)
+    f = (flags || {}).deep_dup
+    f['card_ct'] ||= {}
+    f['card_ct'][hand_id.to_s] = turns.to_i
+    self.flags = f
+  end
+
+  # ターン経過時に全カードのCTを1減らす。0以下は削除
+  def tick_card_ct!
+    f   = (flags || {}).deep_dup
+    cts = f['card_ct'] || {}
+
+    cts.each do |cid, v|
+      cts[cid] = v.to_i - 1
+    end
+
+    cts.delete_if { |_cid, v| v <= 0 }
+    f['card_ct'] = cts
+    self.flags   = f
+  end
+
+  # 特定のside(:player/:enemy)、stat(:attack/:defense/:speed)のバフを削除
+  def clear_buff!(side:, stat:)
+    f = (flags || {}).deep_dup
+    return unless f['buffs'] && f['buffs'][side.to_s]
+
+    f['buffs'][side.to_s].delete(stat.to_s)
+    f['buffs'].delete(side.to_s) if f['buffs'][side.to_s].blank?
+
     self.flags = f
   end
 
