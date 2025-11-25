@@ -156,3 +156,66 @@ attach_effect(neutral_card, grant_priority_1t, position: 1)
 
 puts 'Seed done.'
 puts "Elements: #{Element.count}, Enemies: #{Enemy.count}, Cards: #{Card.count}, Effects: #{Effect.count}, CardEffects: #{CardEffect.count}"
+
+# ============================
+# 故事シナリオ用 敵データ登録
+# ============================
+
+puts '=== Registering Story Enemies ==='
+
+story_enemies = [
+  {
+    name: 'Goblin',
+    code: 'goblin',
+    base_hp: 5,
+    boss: false,
+    element_id: 7, # Neutral
+    description: '街道沿いに現れる小柄なゴブリン'
+  },
+  {
+    name: 'Thief',
+    code: 'thief',
+    base_hp: 5,
+    boss: false,
+    element_id: 7, # Neutral
+    description: '旅人を襲う悪名高い盗賊'
+  },
+  {
+    name: 'Gatekeeper',
+    code: 'gatekeeper',
+    base_hp: 5,
+    boss: false,
+    element_id: 4, # Earth
+    description: '城門を守る屈強な門番'
+  },
+  {
+    name: 'General',
+    code: 'general',
+    base_hp: 5,
+    boss: false,
+    element_id: 1, # Fire
+    description: '王国最強と名高い将軍（真エンディング条件2）'
+  },
+  {
+    name: 'Demon Lord',
+    code: 'demonlord',
+    base_hp: 5,
+    boss: true,
+    element_id: 6, # Dark
+    description: '魔王。全ての戦いの頂点に立つ存在'
+  }
+]
+
+story_enemies.each do |attrs|
+  enemy = Enemy.find_or_initialize_by(code: attrs[:code])
+  enemy.name        = attrs[:name]
+  enemy.base_hp     = attrs[:base_hp]
+  enemy.boss        = attrs[:boss]
+  enemy.element_id  = attrs[:element_id]
+  enemy.description = attrs[:description]
+  enemy.flags     ||= {}
+  enemy.save!
+  puts "✓ #{enemy.name} (#{enemy.code}) registered/updated"
+end
+
+puts '=== Story Enemies Done ==='
