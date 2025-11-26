@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  # トップページ & /home の両方がプロローグ
-  root 'stories#prologue'
-  get 'home', to: 'stories#prologue'
+  # トップページ & /home の両方がキャラ作成
+  root 'characters#new'
+  get 'home', to: 'characters#new'
 
   resources :characters, only: %i[new create]
 
@@ -32,5 +32,12 @@ Rails.application.routes.draw do
     post :go_demonlord
 
     get :ending
+
+    # ▼ キャラ作成後の NPC 会話 & 属性決定
+    get  :npc_intro      # 会話画面表示
+    post :npc_talk       # プレイヤーの発言を送信（AI返答もここでやる形ならこれだけでOK）
+    get :decide_element # ← もし今使っていなければ、あとで消してもOK
+    post :npc_reply      # ← コントローラで使ってなければ消してOK
+    post :npc_finish     # 会話終了 → 要約 & 画像生成
   end
 end

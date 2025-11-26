@@ -1,23 +1,27 @@
 class CharactersController < ApplicationController
   def new
-    # Player 作成フォーム用のインスタンス
     @player = Player.new
-    @elements = Element.all
   end
 
   def create
     @player = Player.new(player_params)
-    @player.base_hp = 5 # 初期HPを固定値でセット
-    @player.meta = {} # 空のJSONデータ（将来の拡張用）
 
-    if @player.save # ここで中間ページに渡す遷移先を用意
-      # セッションに保存（保険）。以後はパラメータがなくても復元できる
+    # ★DBの name が NOT NULL なので、ひとまず name_kana をそのまま入れておく
+    @player.name = @player.name_kana
+    # base_hp を使っているなら、ここで初期値をセット（前の仕様を引き継ぐ）
+    @player.base_hp ||= 5
+
+    if @player.save
       session[:player_id] = @player.id
-      redirect_to new_battle_path(player_id: @player.id),
-                  notice: "キャラクター「#{@player.name}」を作成しました。"
+
+      # ストーリー進行の初期レコード
+      StoryProgress.find_or_create_by!(player: @player) do |sp|
+        sp.current_step = 'npc_talk' # まずはNPC会話ステップに入る
+        sp.flags        = { 'talk_logs' => [] }
+      end
+
+      redirect_to npc_intro_story_path, notice: 'キャラクターを作成しました。'
     else
-      flash.now[:alert] = '作成に失敗しました。入力内容をご確認ください。'
-      @elements = Element.all
       render :new, status: :unprocessable_entity
     end
   end
@@ -25,8 +29,6 @@ class CharactersController < ApplicationController
   private
 
   def player_params
-    # :player が基本。もし :character で来たらそれも許容する
-    key = params[:player].present? ? :player : :character
-    params.require(key).permit(:name, :element_id)
+    params.require(:player).permit(:name_kana, :gender)
   end
 end
