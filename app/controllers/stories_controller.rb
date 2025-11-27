@@ -285,46 +285,32 @@ class StoriesController < ApplicationController
 
   # === 要約からキャラ画像を生成して URL を保存する ===
   # === 要約からキャラ画像を生成して ActiveStorage に保存 ===
+  # === 要約からキャラ画像を生成して ActiveStorage に保存する ===
   def attach_avatar_image(player, personality_summary)
     gender_prompt =
       case player.gender
-      when 'male'
-        'young male adventurer'
-      when 'female'
-        'young female adventurer'
-      else
-        'androgynous young adventurer'
-      end
-
-    # 属性ごとに少し雰囲気も変える（バリエーション用）
-    element_prompt =
-      case player.element&.code
-      when 'fire'
-        'red and orange color scheme, a bit passionate atmosphere'
-      when 'water'
-        'blue and aqua color scheme, calm and gentle atmosphere'
-      when 'wind'
-        'green color scheme, light clothes, lively atmosphere'
-      when 'earth'
-        'brown and olive color scheme, stable and grounded atmosphere'
-      when 'light'
-        'bright and holy atmosphere, soft light around the character'
-      when 'dark'
-        'deep purple or navy color scheme, slightly mysterious atmosphere'
-      else
-        'neutral and natural color scheme'
+      when 'male'   then 'young male adventurer'
+      when 'female' then 'young female adventurer'
+      else               'androgynous young adventurer'
       end
 
     image_prompt = <<~IMG
       anime style fantasy character illustration,
       #{gender_prompt},
-      full body from head to toe, standing pose,
-      character is fully visible in the frame with the entire head and feet clearly inside the image,
-      leave some empty space above the head and below the feet,
-      centered composition, no cropping of the head or feet,
-      #{element_prompt},
-      express this personality: #{personality_summary}.
-      plain light background, no UI, no border, no text, no logo.
+      full body, entire body visible from head to toe,
+      standing pose, facing front,
+      centered in the frame with generous margins,
+      medium-distance framing, character should occupy about 70% of the canvas height,
+      clear space above the head and below the feet,
+      no cropping of head or feet,
+
+      transparent background, PNG with alpha channel,
+      no background, no scenery, no floor, no environment,
+      no background shadows, clean silhouette,
+
+      high detail, soft lighting,
+      Personality: #{personality_summary}
+      No text, no logo.
     IMG
 
     begin
@@ -332,27 +318,32 @@ class StoriesController < ApplicationController
         parameters: {
           model: 'gpt-image-1',
           prompt: image_prompt,
-          size: '1024x1536' # 縦長のまま
+          size: '1024x1536'
         }
       )
 
       b64 = image_response.dig('data', 0, 'b64_json')
+
       unless b64.present?
-        Rails.logger.error("[AVATAR_IMAGE] URL / b64_json が返ってきませんでした: #{image_response.inspect}")
+        Rails.logger.error("[AVATAR_IMAGE] b64_json が返ってきません: #{image_response.inspect}")
         return
       end
 
       binary = Base64.decode64(b64)
-      io = StringIO.new(binary)
+      io     = StringIO.new(binary)
 
-      player.avatar_image.purge if player.avatar_image.attached?
       player.avatar_image.attach(
         io: io,
         filename: "player_#{player.id}_avatar.png",
         content_type: 'image/png'
       )
     rescue StandardError => e
-      Rails.logger.error("[AVATAR_IMAGE] OpenAI image error: #{e.class} #{e.message}")
+      # ここでボディも出してあげると原因がはっきりする
+      if e.respond_to?(:response) && e.response
+        Rails.logger.error("[AVATAR_IMAGE] 画像生成エラー: #{e.class} #{e.message} body: #{e.response.body}")
+      else
+        Rails.logger.error("[AVATAR_IMAGE] 画像生成エラー: #{e.class} #{e.message}")
+      end
     end
   end
 end
