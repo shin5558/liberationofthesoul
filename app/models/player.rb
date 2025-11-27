@@ -47,6 +47,7 @@ class Player < ApplicationRecord
   # validates :name, presence: true
 
   # HP はこれまでどおり整数・正の数
+  validates :name, presence: true, allow_blank: true # name_kana をメインに見てるのでゆるくしてもOK
   validates :base_hp,
             presence: true,
             numericality: { only_integer: true, greater_than: 0 }
