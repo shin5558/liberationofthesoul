@@ -1,214 +1,194 @@
+<% content_for :body_class, "battle-screen" %>
+
 <turbo-frame id="battle-board">
+  <%# ===== 状態テキスト（画面の上に表示） ===== %>
+  <% if @battle.won? %>
+    <h2 style="color: green; margin-bottom: 4px;">
+      🎉 勝利！敵を倒しました！
+    </h2>
+  <% elsif @battle.lost? %>
+    <h2 style="color: red; margin-bottom: 4px;">
+      💀 敗北...もう一度挑戦しよう！
+    </h2>
+  <% else %>
+    <h2 style="margin-bottom: 4px;">バトル継続中…</h2>
+  <% end %>
 
-<%# ====== 勝利 / 敗北 / 継続 中 ====== %>
-<% if @battle.won? %>
-  <h2 style="color: green; margin-bottom: 8px;">
-    🎉 勝利！敵を倒しました！
-  </h2>
-<% elsif @battle.lost? %>
-  <h2 style="color: red; margin-bottom: 8px;">
-    💀 敗北...もう一度挑戦しよう！
-  </h2>
-<% else %>
-  <h2 style="margin-bottom: 8px;">
-    バトル継続中…
-  </h2>
-<% end %>
-
-<p>あなたの手: <strong><%= @hand_label %></strong></p>
-<p>敵の手:     <strong><%= @cpu_hand_label %></strong></p>
-<p style="font-size:1.2rem; margin: 12px 0;">
-  <strong><%= @result_text %></strong>
-</p>
-<p>出す手を選んでください:</p>
-<% unless @can_janken %>
-  <p style="color:#c00; font-size:0.9rem;">
-    ※ 先にカードを1枚使ってください
+  <p>
+    あなたの手: <strong><%= @hand_label %></strong> /
+    敵の手: <strong><%= @cpu_hand_label %></strong>
   </p>
-<% end %>
-<div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
+  <p style="font-size:1.1rem; margin: 6px 0 12px;">
+    <strong><%= @result_text %></strong>
+  </p>
 
-  <%= button_to "グー ✊",
-        battles_path,
-        method: :post,
-        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "g" },
-        form: { data: { turbo_frame: "battle-board" } },
-        class: "btn" %>
+  <%# ===== HP 計算（今までのロジックそのまま） ===== %>
+  <% player     = @battle.player %>
+  <% player_max = player.base_hp %>
+  <% player_now = @battle.player_hp %>
+  <% player_pct = ((player_now.to_f / player_max) * 100).round %>
 
-  <%= button_to "チョキ ✌️",
-        battles_path,
-        method: :post,
-        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "t" },
-        form: { data: { turbo_frame: "battle-board" } },
-        class: "btn" %>
+  <% enemy     = @battle.enemy %>
+  <% enemy_max = enemy.base_hp %>
+  <% enemy_now = @battle.enemy_hp %>
+  <% enemy_pct = ((enemy_now.to_f / enemy_max) * 100).round %>
 
-  <%= button_to "パー ✋",
-        battles_path,
-        method: :post,
-        params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "p" },
-        form: { data: { turbo_frame: "battle-board" } },
-        class: "btn" %>
+  <%# =========================
+      バトルボード本体
+      ========================= %>
+  <div class="battle-wrapper">
+    <div class="battle-bg"></div>
 
-</div>
+    <div class="battle-layer">
+      <%# --- 上側：敵カード + 敵HP --- %>
+      <div class="battle-top">
+        <div class="card-row">
+          <% 5.times do %>
+            <div class="card-back"></div>
+          <% end %>
+        </div>
+        <div class="hp-bar" data-target="<%= enemy_pct %>">
+          <div class="hp-fill enemy"></div>
+        </div>
+      </div>
 
-<%# === プレイヤー / 敵 HP を横並びで表示 === %>
-<% player     = @battle.player %>
-<% player_max = player.base_hp %>
-<% player_now = @battle.player_hp %>
-<% player_pct = ((player_now.to_f / player_max) * 100).round %>
+      <%# --- 下側：プレイヤーHP + 手札 --- %>
+      <div class="battle-bottom">
+        <div class="hp-bar" data-target="<%= player_pct %>">
+          <div class="hp-fill player"></div>
+        </div>
 
-<% enemy     = @battle.enemy %>
-<% enemy_max = enemy.base_hp %>
-<% enemy_now = @battle.enemy_hp %>
-<% enemy_pct = ((enemy_now.to_f / enemy_max) * 100).round %>
-
-<div class="hp-area">
-  <div class="hp-wrap">
-    <div class="hp-head">
-      <span>プレイヤー：<%= player.name %></span>
-      <span><%= player_now %> / <%= player_max %> HP</span>
-    </div>
-    <div class="hp-bar" data-target="<%= player_pct %>">
-      <div class="hp-fill player"></div>
-    </div>
-  </div>
-
-  <div class="hp-wrap">
-    <div class="hp-head">
-      <span>敵：<%= enemy.name %></span>
-      <span><%= enemy_now %> / <%= enemy_max %> HP</span>
-    </div>
-    <div class="hp-bar" data-target="<%= enemy_pct %>">
-      <div class="hp-fill enemy"></div>
-    </div>
-  </div>
-</div>
-
-<hr style="margin: 12px 0;">
-
-<%# ====== （戦闘ログは現在非表示） ====== %>
-<%# logs = (@battle.flags || {})['logs'] || [] %>
-
-<%# === バフ状態表示（プレイヤー） === %>
-<% player_buffs = @battle.buffs_for(:player) %>
-
-<div style="display:flex; gap:24px; margin-bottom:16px; font-size:14px;">
-  <div>
-    <h3 style="margin-bottom:4px;">プレイヤーのバフ</h3>
-    <% if player_buffs.present? %>
-      <ul style="padding-left:16px; list-style:disc;">
-        <% player_buffs.each do |stat, info| %>
-          <% label =
-               case stat.to_s
-               when 'attack'  then '攻撃'
-               when 'defense' then '防御'
-               when 'speed'   then '速度'
-               else stat.to_s
-               end %>
-          <li>
-            <%= label %>
-            <%= info['value'] >= 0 ? "+#{info['value']}" : info['value'] %>
-            （残り <%= info['turns'] %> ターン）
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p style="color:#666;">バフなし</p>
-    <% end %>
-  </div>
-</div>
-
-<%# --- 手札一覧 --- %>
-<h2>手札</h2>
-<% if @player_hands.present? %>
-  <div style="display:flex;
-              flex-wrap:nowrap;         /* 一列に並べる */
-              gap:8px;                  /* 少し狭め */
-              overflow-x:auto;          /* 横スクロール許可 */
-              padding-bottom:4px;">
-
+<div class="hand-row">
+  <% if @player_hands.present? %>
     <% @player_hands.each do |hand| %>
       <% card = hand.card %>
-      <% ct   = @battle.card_ct_for(hand.id) %>  <%# ←★ これを必ず書く！ %>
+      <% ct   = @battle.card_ct_for(hand.id) %>
 
-      <div
-        style="
-          border:1px solid #ccc;
-          padding:6px;
-          min-width:150px;
-          flex:0 0 auto;
-          opacity:<%= (hand.consumed? || ct > 0) ? 0.4 : 1.0 %>;">  <%# ← CT/使用済みなら薄く %>
+      <%# 状態テキスト %>
+      <% status_text =
+           if hand.consumed?
+             "使用済み"
+           elsif ct > 0
+             "使用まで残り #{ct} ターン"
+           else
+             "使用可能"
+           end %>
 
+      <%# 状態クラス（枠色用） %>
+      <% state_class =
+           if hand.consumed?
+             "is-consumed"
+           elsif ct > 0
+             "is-cooldown"
+           else
+             "is-available"
+           end %>
 
-        <strong><%= card.name %></strong>
-        <p style="font-size:0.9rem;"><%= card.description %></p>
+      <%# ===============================
+         カード全体を button_to にする
+         =============================== %>
+      <% if hand.consumed? || ct > 0 %>
+        <%# 使えないカードはただの div（クリックしても何もしない） %>
+        <div class="card-button-disabled">
+          <div class="player-card <%= state_class %>">
+            <div class="card-front"></div>
 
-        <% if hand.consumed? %>
-          <p style="color:gray; font-size:0.8rem;">使用済み</p>
+            <div class="card-tooltip">
+              <div class="card-tooltip-title"><%= card.name %></div>
+              <div class="card-tooltip-desc"><%= card.description %></div>
+              <div class="card-tooltip-status"><%= status_text %></div>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <%= button_to use_battle_card_battle_path(@battle),
+              method: :post,
+              params: { hand_id: hand.id },
+              form:  { data: { turbo_frame: "battle-board" } },
+              class: "card-button" do %>
+          <div class="player-card <%= state_class %>">
+            <div class="card-front"></div>
 
-        <% elsif ct > 0 %>
-          <p style="color:red; font-size:0.85rem;">
-            使用まで残り <%= ct %> ターン
-          </p>
-          <button class="btn" disabled style="background:#666;">
-            使用不可
-          </button>
-
-        <% else %>
-          <%= button_to "このカードを使う",
-                use_battle_card_battle_path(@battle),
-                method: :post,
-                params: { hand_id: hand.id },
-                class: "btn" %>
+            <div class="card-tooltip">
+              <div class="card-tooltip-title"><%= card.name %></div>
+              <div class="card-tooltip-desc"><%= card.description %></div>
+              <div class="card-tooltip-status"><%= status_text %></div>
+            </div>
+          </div>
         <% end %>
+      <% end %>
+    <% end %>
+
+  <% else %>
+    <%# 手札がないときのダミー %>
+    <% 3.times do %>
+      <div class="card-button-disabled">
+        <div class="player-card is-empty">
+          <div class="card-front"></div>
+        </div>
       </div>
     <% end %>
+  <% end %>
+</div>
+  <%# ==== じゃんけんボタンはバトルボードの下にまとめる ==== %>
+  <div class="battle-controls">
+    <p>出す手を選んでください:</p>
+
+    <% unless @can_janken %>
+      <p style="color:#c00; font-size:0.9rem;">
+        ※ 先にカードを1枚使ってください
+      </p>
+    <% end %>
+
+    <%= button_to "グー ✊",
+          battles_path,
+          method: :post,
+          params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "g" },
+          form: { data: { turbo_frame: "battle-board" } },
+          class: "btn jk-btn" %>
+
+    <%= button_to "チョキ ✌️",
+          battles_path,
+          method: :post,
+          params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "t" },
+          form: { data: { turbo_frame: "battle-board" } },
+          class: "btn jk-btn" %>
+
+    <%= button_to "パー ✋",
+          battles_path,
+          method: :post,
+          params: { player_id: @battle.player_id, battle_id: @battle.id, hand: "p" },
+          form: { data: { turbo_frame: "battle-board" } },
+          class: "btn jk-btn" %>
   </div>
-<% else %>
-  <p>手札はありません。</p>
-<% end %>
 
-<hr style="margin: 20px 0;">
+  <script>
+    (function () {
+      function applyHpBars() {
+        document.querySelectorAll('.hp-bar').forEach(function(bar){
+          var target = parseInt(bar.dataset.target || '0', 10);
+          var fill = bar.querySelector('.hp-fill');
+          if (!fill) return;
 
-<%# ====== ボタン類 ====== %>
-<% if @battle.ongoing? %>
-  <%# 進行中なら特に追加ボタンなし（上のじゃんけんボタンで続行） %>
-<% else %>
-  <%# HPが0になった → 勝利/敗北リザルトから再戦 %>
-  <%= link_to "もう一度戦う",
-              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
-              class: "btn" %>
-<% end %>
+          // 色（残量で変化）
+          fill.classList.remove('is-warn','is-danger');
+          if (target <= 30) {
+            fill.classList.add('is-danger');
+          } else if (target <= 60) {
+            fill.classList.add('is-warn');
+          }
 
-<%= link_to "トップに戻る", root_path, class: "btn" %>
-
-<script>
-(function () {
-  function applyHpBars() {
-    document.querySelectorAll('.hp-bar').forEach(function(bar){
-      var target = parseInt(bar.dataset.target || '0', 10);
-      var fill = bar.querySelector('.hp-fill');
-      if (!fill) return;
-
-      // 色（残量で変化）
-      fill.classList.remove('is-warn','is-danger');
-      if (target <= 30) {
-        fill.classList.add('is-danger');
-      } else if (target <= 60) {
-        fill.classList.add('is-warn');
+          // アニメーション
+          fill.style.width = '0%';
+          requestAnimationFrame(function(){
+            fill.style.width = target + '%';
+          });
+        });
       }
 
-      // アニメーション
-      fill.style.width = '0%';
-      requestAnimationFrame(function(){
-        fill.style.width = target + '%';
-      });
-    });
-  }
-
-  document.addEventListener('turbo:load', applyHpBars);
-  document.addEventListener('DOMContentLoaded', applyHpBars);
-})();
-</script>
-
+      document.addEventListener('turbo:load', applyHpBars);
+      document.addEventListener('DOMContentLoaded', applyHpBars);
+    })();
+  </script>
 </turbo-frame>
+</div>
