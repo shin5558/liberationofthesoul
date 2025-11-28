@@ -2,20 +2,14 @@
  * This is a manifest file that'll be compiled into application.css, which will include all the files
  * listed below.
  *
- * Any CSS (and SCSS, if configured) file within this directory, lib/assets/stylesheets, or any plugin's
- * vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
  *= require_tree .
  *= require_self
  *= require flash
  */
 
- /* === HP bar === */
+/* ==============================
+   ベースレイアウト
+   ============================== */
 
 html, body {
   height: 100%;
@@ -27,16 +21,10 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
-}
-
-/* ======= 全体の文字 ======= */
-body {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.4;
   font-size: 15px;
   color: #222;
-  margin: 0;
-  padding: 0;
 }
 
 h1, h2 {
@@ -44,48 +32,12 @@ h1, h2 {
   margin-bottom: 8px;
 }
 
-/* 追加：HP全体を横並びにする */
-.hp-area {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;          /* ← 16〜24 だと広すぎるので 12 に */
-}
-
-/* ここは「数字を減らす」と良いところ */
-.hp-wrap {
-  margin: 4px 0 10px;   /* 元: 12px 0 20px → 半分くらいに */
-}
-
-.hp-head {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-}
-
-.hp-bar {
-  height: 14px;
-  background: #e5e7eb;       /* グレー */
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 6px;
-  position: relative;
-}
-
-.hp-fill {
-  height: 100%;
-  width: 0%;                  /* 初期0% → JSで目標%へ */
-  transition: width 400ms ease; /* ここが“ぬるっ”の肝 */
-}
-
-.hp-fill.player { background: #34d399; } /* player 基本: 緑 */
-.hp-fill.enemy  { background: #34d399; } /* enemy 基本: 赤 */
-
-/* 残量で色を変えたい場合（任意） */
-.hp-fill.is-warn  { background: #f59e0b; } /* 黄色 */
-.hp-fill.is-danger{ background: #ef4444; } /* 濃い赤 */
+/* ==============================
+   ヘッダー / メイン / フッター
+   ============================== */
 
 .site-header {
-  height: 4vh;                  /* ← 画面高さの10% */
+  height: 4vh;
   background: #333;
   color: white;
   display: flex;
@@ -96,23 +48,16 @@ h1, h2 {
   width: 100%;
 }
 
-/* ==============================
-   メイン（残り全部）
-   ============================== */
-/* 元: padding: 24px; を少し詰める */
 .site-main {
   flex: 1;
-  padding: 12px 16px;   /* ← 上下12 / 左右16 にするとかなり詰まる */
+  padding: 12px 16px;   /* ちょっと詰め気味 */
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
 }
 
-/* ==============================
-   フッター（全画面の12%）
-   ============================== */
 .site-footer {
-  height: 4vh;                  /* ← 画面高さの12% */
+  height: 4vh;
   background: #333;
   color: white;
   display: flex;
@@ -128,10 +73,14 @@ h1, h2 {
   color: #fff;
   text-decoration: none;
 }
-
 .site-nav__link:hover {
   text-decoration: underline;
 }
+
+/* ==============================
+   フラッシュ（ベース）
+   詳細デザインは flash.css 側に任せる想定
+   ============================== */
 
 .flash {
   padding: 8px 12px;
@@ -147,7 +96,10 @@ h1, h2 {
   background: #ffe0e0;
 }
 
-/* ======= ボタン ======= */
+/* ==============================
+   共通ボタン
+   ============================== */
+
 .btn {
   display: inline-block;
   padding: 10px 18px;
@@ -158,27 +110,69 @@ h1, h2 {
   font-size: 15px;
   font-weight: bold;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: 0.15s;
 }
-
 .btn:hover {
   background: #1d4fcc;
 }
 
-/* ======= じゃんけんボタン ======= */
+/* じゃんけんボタン（共通スタイル） */
 .jk-btn {
-  padding: 14px 22px;
-  font-size: 20px;
+  padding: 10px 15px;
+  font-size: 18px;
   border-radius: 10px;
   background: #000000;
   border: 1px solid #ccc;
 }
-
 .jk-btn:hover {
   background: #e9ecf2;
 }
 
-/* ======= 戦闘ログ ======= */
+/* ==============================
+   HPバー（汎用）
+   ============================== */
+
+.hp-area {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hp-wrap {
+  margin: 4px 0 10px;
+}
+
+.hp-head {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.hp-bar {
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+  position: relative;
+}
+
+.hp-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 400ms ease;
+}
+.hp-fill.player { background: #34d399; }
+.hp-fill.enemy  { background: #34d399; }
+.hp-fill.is-warn  { background: #f59e0b; }
+.hp-fill.is-danger{ background: #ef4444; }
+
+/* ==============================
+   ログ / カードパネル（共通）
+   ============================== */
+
 .log-box {
   background: #fafafa;
   border: 1px solid #ddd;
@@ -188,17 +182,14 @@ h1, h2 {
   max-height: 300px;
   overflow-y: auto;
 }
-
 .log-box ul {
   padding-left: 18px;
 }
-
 .log-box li {
   margin-bottom: 6px;
   font-size: 14px;
 }
 
-/* ======= カードパネル ======= */
 .card-panel {
   background: #fffdf7;
   border: 1px solid #e3dcb9;
@@ -206,3 +197,388 @@ h1, h2 {
   border-radius: 8px;
   margin-bottom: 14px;
 }
+
+/* ==============================
+   Battle board (じゃんけんバトル画面)
+   ============================== */
+
+/* 16:9 のバトルエリア本体 */
+turbo-frame#battle-board .battle-wrapper {
+  width: 1152px;
+  height: 648px;
+  margin: 12px auto;
+  position: relative;
+  overflow: visible;
+  border-radius: 8px;
+}
+
+/* 今は背景は真っ白（あとでダンジョン画像を戻せるように） */
+turbo-frame#battle-board .battle-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/assets/dark_demon_castle_background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+}
+
+/* 上に重ねるレイヤー */
+turbo-frame#battle-board .battle-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 24px 72px;
+  box-sizing: border-box;
+}
+
+/* 敵側ブロック / 味方側ブロック */
+turbo-frame#battle-board .battle-top {
+  margin-top: 8px;
+}
+turbo-frame#battle-board .battle-bottom {
+  margin-bottom: 16px;
+}
+
+/* 敵側カード行 */
+turbo-frame#battle-board .card-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* バトル画面専用 HP バー（上書き） */
+turbo-frame#battle-board .hp-bar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  margin: 10px auto 22px;
+}
+turbo-frame#battle-board .hp-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 400ms ease;
+}
+turbo-frame#battle-board .hp-fill.player {
+  background: #b8ff4b;
+}
+turbo-frame#battle-board .hp-fill.enemy {
+  background: #b8ff4b;
+}
+turbo-frame#battle-board .hp-fill.is-warn {
+  background: #f59e0b;
+}
+turbo-frame#battle-board .hp-fill.is-danger {
+  background: #ef4444;
+}
+
+/* ========= 敵・共通のカード裏面（上段） ========= */
+
+turbo-frame#battle-board .card-back {
+  width: 100px;
+  height: 150px;
+  background: #1c2c44;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  position: relative;
+}
+turbo-frame#battle-board .card-back::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-sizing: border-box;
+}
+turbo-frame#battle-board .card-back::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4);
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.15),
+    0 0 12px rgba(0,0,0,0.6);
+}
+
+/* ========= プレイヤー手札（下段） ========= */
+
+/* 手札全体の並び */
+turbo-frame#battle-board .hand-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+/* 1 枚ぶんの枠 */
+turbo-frame#battle-board .player-card {
+  position: relative;
+  width: 100px;
+  height: 150px;
+  margin: 0 8px;
+  overflow: visible;  /* ツールチップをはみ出させる */
+}
+
+/* プレイヤーのカード裏面 */
+.player-card .card-front {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background-image: url('/assets/card_back_magic_circle.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+/* 敵カード（card-back）も同じデザインに */
+.card-back {
+  width: 100px;
+  height: 150px;
+  border-radius: 10px;
+  background-image: url('/assets/card_back_magic_circle.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+/* 状態ごとの枠色（外側に光る感じ） */
+turbo-frame#battle-board .player-card.is-available .card-front {
+  outline: 2px solid #16a34a;   /* 使用可能 → 緑 */
+}
+turbo-frame#battle-board .player-card.is-cooldown .card-front {
+  outline: 2px solid #f97316;   /* CT中 → オレンジ */
+}
+turbo-frame#battle-board .player-card.is-consumed .card-front {
+  outline: 2px solid #6b7280;   /* 使用済み → グレー */
+  filter: grayscale(0.6);
+}
+
+/* 下の「使う」ボタンエリア */
+turbo-frame#battle-board .card-use-area {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;               /* カードのすぐ下 */
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+}
+turbo-frame#battle-board .card-use-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  margin: 0;
+  width: 90%;
+}
+turbo-frame#battle-board .card-use-btn[disabled] {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ツールチップを絶対に隠さない保険 */
+turbo-frame#battle-board .battle-wrapper,
+turbo-frame#battle-board .battle-layer,
+turbo-frame#battle-board .hand-row,
+turbo-frame#battle-board .player-card {
+  overflow: visible !important;
+}
+
+/* ========= 黒いふわっとツールチップ ========= */
+
+turbo-frame#battle-board .card-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;                          /* カードのちょうど上 */
+  transform: translateX(-50%) translateY(4px);
+  z-index: 30;
+
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  min-width: 160px;
+  max-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.12s ease-out,
+    transform 0.12s ease-out,
+    visibility 0s linear 0.12s;
+}
+
+/* 下向きの小さい三角形 */
+turbo-frame#battle-board .card-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.9) transparent transparent transparent;
+}
+
+/* ホバーでふわっと出る */
+turbo-frame#battle-board .player-card:hover .card-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+  transition-delay: 0s;
+}
+
+/* カード全体をボタンにしたときのスタイルリセット */
+.card-button {
+  border: none;
+  padding: 0;
+  margin: 0 8px;
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* 使えないカード用のダミーコンテナ（見た目は同じ・クリック不可） */
+.card-button-disabled {
+  display: inline-block;
+  margin: 0 8px;
+  cursor: default;
+}
+.card-button-disabled .player-card {
+  cursor: default;
+}
+
+/* ツールチップ内テキスト */
+turbo-frame#battle-board .card-tooltip-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+turbo-frame#battle-board .card-tooltip-desc {
+  margin-bottom: 2px;
+}
+turbo-frame#battle-board .card-tooltip-status {
+  font-size: 11px;
+  color: #e5e7eb;
+}
+
+/* ========= じゃんけんボタンを横並びに ========= */
+
+.battle-controls {
+  margin-top: 16px;
+  text-align: center;
+  width: 100%;
+}
+.battle-controls form {
+  display: inline-block;
+  margin: 0 6px;
+  vertical-align: middle;
+}
+.battle-controls .jk-btn {
+  white-space: nowrap;
+  display: inline-block;
+  font-size: 18px;
+  padding: 10px 16px;
+}
+
+.battle-controls p {
+  color: #f8fafc !important;
+  font-weight: 600;
+  text-shadow: 0 0 4px rgba(0,0,0,0.6); /* 少し光らせると見える */
+}
+
+/* =============================
+   敵カード（battle-board 専用）を画像裏面に統一
+   ============================= */
+
+turbo-frame#battle-board .card-back {
+  width: 100px;
+  height: 150px;
+  border-radius: 10px;
+  background-image: url("/assets/enemy_card_back_dark.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5) !important;
+
+  /* 以前の擬似要素の枠を無効化 */
+}
+turbo-frame#battle-board .card-back::before,
+turbo-frame#battle-board .card-back::after {
+  content: none !important;
+}
+
+/* =========================================
+   戦闘画面専用：白い背景を消して全体を透明にする
+   ========================================= */
+.battle-screen .site-main {
+  background: transparent !important;
+  color: #f1f5f9 !important;  /* 全体の文字を明るく */
+}
+
+/* サブテキスト（手の表示など）も明るく */
+.battle-screen p {
+  color: #e2e8f0 !important;
+}
+
+.battle-screen h1,
+.battle-screen h2 {
+  color: #f8fafc !important;
+}
+
+/* =========================================
+   戦闘画面専用レイアウト（body に battle-screen が付いている時）
+   ========================================= */
+
+/* 画面全体を魔王城背景で覆う */
+body.battle-screen {
+  margin: 0;
+  min-height: 100vh;
+  background-image: url("/assets/dark_demon_castle_background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;   /* スクロールしても固定 */
+  color: #f1f5f9;
+}
+
+/* メインコンテンツを広げて、余白の白を消す */
+body.battle-screen .site-main {
+  max-width: none;      /* 960px 制限を解除 */
+  padding: 24px 0;      /* 左右の白い余白を消す */
+}
+
+/* 戦闘テキストを明るくして背景に溶け込ませる */
+body.battle-screen h1,
+body.battle-screen h2,
+body.battle-screen p,
+body.battle-screen span {
+  color: #f8fafc;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+/* 「出す手を選んでください」など battle-controls 内の文字も同様 */
+body.battle-screen .battle-controls p {
+  color: #f8fafc;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+}
+
