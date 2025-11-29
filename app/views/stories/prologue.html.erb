@@ -2,44 +2,19 @@
 
 <h1>プロローグ</h1>
 
-<% if current_player %>
-  <p>
-    <strong><%= current_player.name_kana %></strong> さん、ここから物語が始まります。
-  </p>
+<p>
+  闇がゆっくりと世界を覆いはじめた頃――<br>
+  山と森に囲まれた小さな王国で、一人の冒険者が静かに目を覚ます。
+</p>
 
-  <% if current_player.avatar_image&.attached? %>
-    <div style="text-align:center; margin:12px 0;">
-      <%= image_tag current_player.avatar_image,
-                    style: "max-width:240px; border-radius:8px;" %>
-    </div>
+<p style="margin-top: 12px;">
+  その名は <strong><%= current_player&.name_kana || "あなた" %></strong>。<br>
+  まだ自分の運命も、この国に迫る脅威の正体も知らないまま…。
+</p>
 
-    <p>属性: <%= current_player.element&.name || "未設定" %></p>
-    <p>性格: <%= current_player.personality_summary || "まだ診断されていません。" %></p>
+<hr>
 
-    <hr>
-
-    <p>このキャラクターで物語を進めます。</p>
-    <ul>
-      <li><%= link_to "第1戦へ進む（分岐1へ）", branch1_choice_story_path, class: "btn" %></li>
-      <li><%= link_to "NPCともう一度話して診断し直す", npc_intro_story_path, class: "btn" %></li>
-    </ul>
-
-  <% else %>
-    <p style="color:#666; font-size:0.9rem;">
-      まだキャラクター画像は生成されていません。<br>
-      NPCとの会話を終えると、自動でキャラ画像が作られます。
-    </p>
-
-    <hr>
-
-    <p>次に進む行き先を選んでください。</p>
-    <ul>
-      <li><%= link_to "NPCと話してキャラ診断をする", npc_intro_story_path, class: "btn" %></li>
-      <li><%= link_to "そのままバトルに進む（デバッグ用）", new_battle_path(player_id: current_player.id), class: "btn" %></li>
-    </ul>
-  <% end %>
-
-<% else %>
-  <p>まだキャラクターが作成されていません。</p>
-  <%= link_to "キャラ作成へ進む", new_character_path, class: "btn" %>
-<% end %>
+<p>物語を進めましょう。</p>
+<ul>
+  <li><%= link_to "第1戦へ進む（分岐1へ）", branch1_choice_story_path, class: "btn" %></li>
+</ul>

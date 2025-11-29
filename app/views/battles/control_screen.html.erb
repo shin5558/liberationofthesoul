@@ -162,6 +162,12 @@
           class: "btn jk-btn" %>
   </div>
 
+<p style="margin-bottom: 8px;">
+  <%= link_to "🎬 観客用バトル画面を別タブでひらく",
+              view_screen_battle_path(@battle),
+              target: "_blank", rel: "noopener" %>
+</p>
+
   <script>
     (function () {
       function applyHpBars() {

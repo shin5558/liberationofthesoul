@@ -1,7 +1,4 @@
 /*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
  *= require_tree .
  *= require_self
  *= require flash
@@ -50,7 +47,7 @@ h1, h2 {
 
 .site-main {
   flex: 1;
-  padding: 12px 16px;   /* ちょっと詰め気味 */
+  padding: 12px 16px;
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
@@ -79,7 +76,6 @@ h1, h2 {
 
 /* ==============================
    フラッシュ（ベース）
-   詳細デザインは flash.css 側に任せる想定
    ============================== */
 
 .flash {
@@ -212,7 +208,7 @@ turbo-frame#battle-board .battle-wrapper {
   border-radius: 8px;
 }
 
-/* 今は背景は真っ白（あとでダンジョン画像を戻せるように） */
+/* 背景 */
 turbo-frame#battle-board .battle-bg {
   position: absolute;
   inset: 0;
@@ -329,7 +325,7 @@ turbo-frame#battle-board .player-card {
   width: 100px;
   height: 150px;
   margin: 0 8px;
-  overflow: visible;  /* ツールチップをはみ出させる */
+  overflow: visible;
 }
 
 /* プレイヤーのカード裏面 */
@@ -360,21 +356,21 @@ turbo-frame#battle-board .player-card {
 
 /* 状態ごとの枠色（外側に光る感じ） */
 turbo-frame#battle-board .player-card.is-available .card-front {
-  outline: 2px solid #16a34a;   /* 使用可能 → 緑 */
+  outline: 2px solid #16a34a;
 }
 turbo-frame#battle-board .player-card.is-cooldown .card-front {
-  outline: 2px solid #f97316;   /* CT中 → オレンジ */
+  outline: 2px solid #f97316;
 }
 turbo-frame#battle-board .player-card.is-consumed .card-front {
-  outline: 2px solid #6b7280;   /* 使用済み → グレー */
+  outline: 2px solid #6b7280;
   filter: grayscale(0.6);
 }
 
-/* 下の「使う」ボタンエリア */
+/* カードボタン周り */
 turbo-frame#battle-board .card-use-area {
   position: absolute;
   left: 50%;
-  bottom: -34px;               /* カードのすぐ下 */
+  bottom: -34px;
   transform: translateX(-50%);
   width: 100%;
   text-align: center;
@@ -398,15 +394,13 @@ turbo-frame#battle-board .player-card {
   overflow: visible !important;
 }
 
-/* ========= 黒いふわっとツールチップ ========= */
-
+/* 黒いツールチップ */
 turbo-frame#battle-board .card-tooltip {
   position: absolute;
   left: 50%;
-  bottom: 100%;                          /* カードのちょうど上 */
+  bottom: 100%;
   transform: translateX(-50%) translateY(4px);
   z-index: 30;
-
   background: rgba(0, 0, 0, 0.9);
   color: #fff;
   padding: 6px 8px;
@@ -416,18 +410,15 @@ turbo-frame#battle-board .card-tooltip {
   min-width: 160px;
   max-width: 220px;
   box-shadow: 0 4px 12px rgba(0,0,0,.3);
-
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-
   transition:
     opacity 0.12s ease-out,
     transform 0.12s ease-out,
     visibility 0s linear 0.12s;
 }
 
-/* 下向きの小さい三角形 */
 turbo-frame#battle-board .card-tooltip::after {
   content: "";
   position: absolute;
@@ -439,7 +430,6 @@ turbo-frame#battle-board .card-tooltip::after {
   border-color: rgba(0,0,0,0.9) transparent transparent transparent;
 }
 
-/* ホバーでふわっと出る */
 turbo-frame#battle-board .player-card:hover .card-tooltip {
   opacity: 1;
   visibility: visible;
@@ -447,7 +437,7 @@ turbo-frame#battle-board .player-card:hover .card-tooltip {
   transition-delay: 0s;
 }
 
-/* カード全体をボタンにしたときのスタイルリセット */
+/* ボタンリセット */
 .card-button {
   border: none;
   padding: 0;
@@ -457,7 +447,7 @@ turbo-frame#battle-board .player-card:hover .card-tooltip {
   display: inline-block;
 }
 
-/* 使えないカード用のダミーコンテナ（見た目は同じ・クリック不可） */
+/* 使えないカード用 */
 .card-button-disabled {
   display: inline-block;
   margin: 0 8px;
@@ -480,8 +470,7 @@ turbo-frame#battle-board .card-tooltip-status {
   color: #e5e7eb;
 }
 
-/* ========= じゃんけんボタンを横並びに ========= */
-
+/* じゃんけんボタン横並び */
 .battle-controls {
   margin-top: 16px;
   text-align: center;
@@ -498,43 +487,21 @@ turbo-frame#battle-board .card-tooltip-status {
   font-size: 18px;
   padding: 10px 16px;
 }
-
 .battle-controls p {
   color: #f8fafc !important;
   font-weight: 600;
-  text-shadow: 0 0 4px rgba(0,0,0,0.6); /* 少し光らせると見える */
+  text-shadow: 0 0 4px rgba(0,0,0,0.6);
 }
 
 /* =============================
-   敵カード（battle-board 専用）を画像裏面に統一
+   戦闘画面専用（body.battle-screen）
    ============================= */
 
-turbo-frame#battle-board .card-back {
-  width: 100px;
-  height: 150px;
-  border-radius: 10px;
-  background-image: url("/assets/enemy_card_back_dark.png") !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.5) !important;
-
-  /* 以前の擬似要素の枠を無効化 */
-}
-turbo-frame#battle-board .card-back::before,
-turbo-frame#battle-board .card-back::after {
-  content: none !important;
-}
-
-/* =========================================
-   戦闘画面専用：白い背景を消して全体を透明にする
-   ========================================= */
 .battle-screen .site-main {
   background: transparent !important;
-  color: #f1f5f9 !important;  /* 全体の文字を明るく */
+  color: #f1f5f9 !important;
 }
 
-/* サブテキスト（手の表示など）も明るく */
 .battle-screen p {
   color: #e2e8f0 !important;
 }
@@ -544,11 +511,6 @@ turbo-frame#battle-board .card-back::after {
   color: #f8fafc !important;
 }
 
-/* =========================================
-   戦闘画面専用レイアウト（body に battle-screen が付いている時）
-   ========================================= */
-
-/* 画面全体を魔王城背景で覆う */
 body.battle-screen {
   margin: 0;
   min-height: 100vh;
@@ -556,17 +518,15 @@ body.battle-screen {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;   /* スクロールしても固定 */
+  background-attachment: fixed;
   color: #f1f5f9;
 }
 
-/* メインコンテンツを広げて、余白の白を消す */
 body.battle-screen .site-main {
-  max-width: none;      /* 960px 制限を解除 */
-  padding: 24px 0;      /* 左右の白い余白を消す */
+  max-width: none;
+  padding: 24px 0;
 }
 
-/* 戦闘テキストを明るくして背景に溶け込ませる */
 body.battle-screen h1,
 body.battle-screen h2,
 body.battle-screen p,
@@ -575,10 +535,241 @@ body.battle-screen span {
   text-shadow: 0 1px 4px rgba(0,0,0,0.7);
 }
 
-/* 「出す手を選んでください」など battle-controls 内の文字も同様 */
 body.battle-screen .battle-controls p {
   color: #f8fafc;
   font-weight: 600;
   text-shadow: 0 1px 4px rgba(0,0,0,0.9);
 }
 
+/* =============================
+   観客用バトル画面（A画面）
+   body.battle-view-only
+   ============================= */
+
+body.battle-view-only .site-header,
+body.battle-view-only .site-footer {
+  display: none;
+}
+
+body.battle-view-only {
+  margin: 0;
+  min-height: 100vh;
+  background: #000;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+body.battle-view-only .site-main {
+  flex: 1;
+  max-width: none;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.battle-view-only-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 背景（森／魔王城など） */
+.battle-view-bg {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 敵の立ち絵 */
+.enemy-stand-image {
+  position: absolute;
+  right: 5%;
+  bottom: 0;
+  height: 80%;
+  max-height: 90vh;
+}
+
+/* 画面の端っこに小さいステータス */
+.battle-view-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.6);
+  color: #e5e7eb;
+  font-size: 12px;
+}
+
+/* =============================
+   ストーリー観客用 A画面
+   body.story-view-only（共通）
+   ============================= */
+
+body.story-view-only .site-header,
+body.story-view-only .site-footer {
+  display: none;
+}
+
+body.story-view-only {
+  margin: 0;
+  min-height: 100vh;
+  background: #000;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+body.story-view-only .site-main {
+  flex: 1;
+  max-width: none;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* A画面の共通ラッパー */
+.story-view-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 汎用ストーリー背景（今はデフォルト） */
+.story-view-bg {
+  width: 100%;
+  height: 100%;
+  background-image: url("/assets/story_default_background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* =============================
+   タイトルA画面（タイトル画像）
+   ============================= */
+
+.story-view-bg.title-bg {
+  background-image: none; /* 画像タグで表示するので背景は無し */
+}
+
+.title-full-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background-color: #000;
+}
+
+/* タイトルの上に出すメッセージ（必要なら） */
+.screen-overlay-message {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 24px;
+  border-radius: 999px;
+}
+
+/* 「妖精」などのラベル用（タイトル→キャラ作成に切り替え時） */
+.fairy-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 64px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0,0,0,0.8);
+  letter-spacing: 0.4em;
+  padding: 12px 24px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 12px;
+}
+
+/* =============================
+   キャラ作成 A画面（大妖精＋森背景）
+   ============================= */
+
+.screen-character-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 背景画像（森） */
+.screen-character-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 大妖精立ち絵 */
+.screen-character-fairy {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 80vh;
+  pointer-events: none;
+}
+
+/* =============================
+   プロローグ A画面（街のざわめき背景）
+   ============================= */
+
+.story-prologue-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.story-prologue-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== キャラ作成結果 A画面（光る背景＋生成キャラ） ===== */
+
+.story-character-summary-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 背景（光のエフェクト入りの画像） */
+.story-character-summary-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 生成したキャラクター（中央〜やや下寄り） */
+.story-character-avatar {
+  position: absolute;
+  bottom: 0;                 /* 足元を画面の下に合わせる */
+  left: 50%;
+  transform: translateX(-50%);
+  height: 78vh;              /* 画面の高さに対するサイズ。お好みで調整 */
+  object-fit: contain;
+  pointer-events: none;
+
+  /* 光らせるエフェクト */
+  filter:
+    drop-shadow(0 0 24px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 60px rgba(255, 255, 255, 0.4));
+}

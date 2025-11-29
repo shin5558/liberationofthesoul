@@ -1,10 +1,21 @@
 class StoriesController < ApplicationController
-  before_action :require_player!
-  before_action :set_player_and_progress
   require 'base64'
   require 'stringio'
+
+  # いまは view_screen だけ特別扱い
+  before_action :require_player!, except: %i[view_screen]
+  before_action :set_player_and_progress, except: %i[view_screen]
+
+  # ===== A画面（スクリーン用）=====
+  # ===== A画面（スクリーン用）=====
+  # ===== A画面（スクリーン用）=====
+  def view_screen
+    mode = session[:screen_mode] || 'title'
+    @mode = mode.to_sym
+  end
+
   # =========================
-  # NPC会話 1: 画面表示
+  # NPC会話 1: 画面表示（B画面用）
   # =========================
   def npc_intro
     flags = @story_progress.flags || {}
@@ -106,78 +117,108 @@ class StoriesController < ApplicationController
       element: element
     )
 
-    # 4. キャラ画像生成（URLを avatar_image_url に保存）
+    # 4. キャラ画像生成（ActiveStorage に保存）
     attach_avatar_image(@player, personality)
 
     # 5. プロローグへ遷移
-    @story_progress.update!(current_step: 'prologue')
+    @story_progress.update!(current_step: 'character_summary')
+    # A画面には「ストーリーモードだよ」と伝えるだけ
+    session[:screen_mode] = 'story'
 
-    redirect_to prologue_story_path, notice: 'キャラクターが完成しました！'
+    redirect_to character_summary_story_path, notice: 'キャラクターが完成しました！'
   end
 
   # =========================
-  # プロローグ〜その後の分岐
+  # キャラ作成結果（B画面）
   # =========================
+  def character_summary
+    session[:screen_mode] = 'summary' # ← A を光＋キャラ画面へ
+    # ビュー側は今まで通り character_summary.html.erb を表示
+  end
+
   def prologue
-    # ここでは current_step は動かさない（初回はキャラ作成時にセット済み）
+    session[:screen_mode] = 'story' # ← A を街の画面へ
+    # ビュー側は prologue.html.erb のままでOK
   end
 
-  def branch1_choice; end
+  # =========================
+  # 1つ目の分岐（B画面）
+  # =========================
+  def branch1_choice
+    session[:screen_mode]  = 'story'
+    session[:story_scene]  = 'branch1_choice'
+    # ここは画面の文言だけなら特にロジックなしでOK
+  end
 
   def go_goblin
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'goblin_battle')
     redirect_to new_battle_path(player_id: @player.id, enemy_type: 'goblin')
   end
 
   def go_thief
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'thief_battle')
     redirect_to new_battle_path(player_id: @player.id, enemy_type: 'thief')
   end
 
   def after_goblin
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'after_goblin')
   end
 
   def after_thief
+    session[:screen_mode] = 'story'
     flags = @progress.flags_hash
     flags['helped_victim'] = true
     @progress.update!(current_step: 'after_thief', flags: flags)
   end
 
-  def branch2_choice; end
+  def branch2_choice
+    session[:screen_mode] = 'story'
+  end
 
   def go_gatekeeper
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'gatekeeper_battle')
     redirect_to new_battle_path(player_id: @player.id, enemy_type: 'gatekeeper')
   end
 
   def go_general
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'general_battle')
     redirect_to new_battle_path(player_id: @player.id, enemy_type: 'general')
   end
 
   def after_gatekeeper
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'warehouse')
   end
 
   def after_general
+    session[:screen_mode] = 'story'
     flags = @progress.flags_hash
     flags['defeated_general'] = true
     @progress.update!(current_step: 'warehouse', flags: flags)
   end
 
   def warehouse
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'demonlord_intro')
   end
 
-  def demonlord_intro; end
+  def demonlord_intro
+    session[:screen_mode] = 'story'
+  end
 
   def go_demonlord
+    session[:screen_mode] = 'story'
     @progress.update!(current_step: 'demonlord_battle')
     redirect_to new_battle_path(player_id: @player.id, enemy_type: 'demonlord')
   end
 
   def ending
+    session[:screen_mode] = 'story'
     flags = @progress.flags_hash
     @true_end =
       flags['helped_victim'] &&
@@ -191,7 +232,43 @@ class StoriesController < ApplicationController
     end
   end
 
+  # =========================
+  # private メソッド
+  # =========================
   private
+
+  # /screen 以外は必ずプレイヤーが必要
+  def require_player!
+    return if session[:player_id] && Player.exists?(session[:player_id])
+
+    redirect_to new_character_path, alert: '先にキャラ作成を行ってください。'
+  end
+
+  # B画面用（通常のストーリー進行）
+  def set_player_and_progress
+    @player = Player.find(session[:player_id])
+
+    @story_progress =
+      StoryProgress.find_or_create_by!(player: @player) do |sp|
+        sp.current_step = 'npc_talk'
+        sp.flags        = { 'talk_logs' => [] }
+      end
+
+    # 既存コード互換用
+    @progress = @story_progress
+  end
+
+  # A画面用（/screen）：プレイヤーがいれば読み込むだけ
+  def set_player_and_progress_for_view
+    return unless session[:player_id]
+
+    @player = Player.find_by(id: session[:player_id])
+    return unless @player
+
+    # ★ A画面では「読むだけ」。なければ作らない
+    @story_progress = StoryProgress.find_by(player: @player)
+    @progress       = @story_progress
+  end
 
   # === 会話ログから属性コードを決める ===
   def decide_element_code(player, dialogue_text)
@@ -229,31 +306,11 @@ class StoriesController < ApplicationController
 
       code = res.dig('choices', 0, 'message', 'content').to_s.strip.downcase
 
-      # 想定外の文字が来たら neutral にフォールバック
       %w[fire water wind earth light dark neutral].include?(code) ? code : 'neutral'
     rescue StandardError => e
       Rails.logger.error("[DECIDE_ELEMENT_CODE] OpenAI error: #{e.class} #{e.message}")
       'neutral'
     end
-  end
-
-  def require_player!
-    return if session[:player_id] && Player.exists?(session[:player_id])
-
-    redirect_to new_character_path, alert: '先にキャラ作成を行ってください。'
-  end
-
-  def set_player_and_progress
-    @player = Player.find(session[:player_id])
-
-    @story_progress =
-      StoryProgress.find_or_create_by!(player: @player) do |sp|
-        sp.current_step = 'npc_talk'
-        sp.flags        = { 'talk_logs' => [] }
-      end
-
-    # 既存コード互換用
-    @progress = @story_progress
   end
 
   def summarize_personality(player, dialogue_text)
@@ -283,9 +340,6 @@ class StoriesController < ApplicationController
     end
   end
 
-  # === 要約からキャラ画像を生成して URL を保存する ===
-  # === 要約からキャラ画像を生成して ActiveStorage に保存 ===
-  # === 要約からキャラ画像を生成して ActiveStorage に保存する ===
   def attach_avatar_image(player, personality_summary)
     gender_prompt =
       case player.gender
@@ -323,7 +377,6 @@ class StoriesController < ApplicationController
       )
 
       b64 = image_response.dig('data', 0, 'b64_json')
-
       unless b64.present?
         Rails.logger.error("[AVATAR_IMAGE] b64_json が返ってきません: #{image_response.inspect}")
         return
@@ -338,7 +391,6 @@ class StoriesController < ApplicationController
         content_type: 'image/png'
       )
     rescue StandardError => e
-      # ここでボディも出してあげると原因がはっきりする
       if e.respond_to?(:response) && e.response
         Rails.logger.error("[AVATAR_IMAGE] 画像生成エラー: #{e.class} #{e.message} body: #{e.response.body}")
       else

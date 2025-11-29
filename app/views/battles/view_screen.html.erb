@@ -1,0 +1,18 @@
+<% content_for :body_class, "battle-view-only" %>
+
+<div class="battle-view-only-wrapper">
+  <%# 背景はとりあえず魔王城画像（固定） %>
+  <div class="battle-view-bg"
+       style="background-image: url('/assets/dark_demon_castle_background.png');">
+
+    <%# 敵の立ち絵もまずは仮の固定画像にする %>
+    <img src="/assets/enemy_stand_dummy.png"
+         alt="<%= @battle.enemy.name %>"
+         class="enemy-stand-image">
+  </div>
+
+  <div class="battle-view-status">
+    <p>敵: <strong><%= @battle.enemy.name %></strong></p>
+    <p>HP: <strong><%= @battle.enemy_hp %></strong> / <%= @battle.enemy.base_hp %></p>
+  </div>
+</div>

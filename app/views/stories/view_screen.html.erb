@@ -1,0 +1,36 @@
+<% content_for :body_class, "story-view-only" %>
+
+<% if @mode == :title %>
+  <!-- タイトルモード：タイトル画像だけ -->
+  <div class="story-view-wrapper">
+    <div class="story-view-bg title-bg">
+      <%= image_tag "title_screen.jpg",
+            alt: "Liberation of the Soul",
+            class: "title-full-image" %>
+    </div>
+  </div>
+
+<% elsif @mode == :fairy %>
+  <!-- キャラ作成モード：妖精とだけ出す -->
+  <div class="story-view-wrapper">
+    <div class="story-view-bg title-bg">
+      <%= image_tag "title_screen.jpg",
+            alt: "Liberation of the Soul",
+            class: "title-full-image" %>
+
+      <div class="fairy-label">
+        妖精
+      </div>
+    </div>
+  </div>
+
+<% else %>
+  <!-- 念のための保険（不明なモードはタイトル扱い） -->
+  <div class="story-view-wrapper">
+    <div class="story-view-bg title-bg">
+      <%= image_tag "title_screen.jpg",
+            alt: "Liberation of the Soul",
+            class: "title-full-image" %>
+    </div>
+  </div>
+<% end %>

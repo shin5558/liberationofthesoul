@@ -148,14 +148,29 @@ class BattlesController < ApplicationController
     if @battle.won? || @battle.lost?
       redirect_to result_battle_path(@battle)
     else
-      redirect_to battle_path(@battle)
+      # ▼ B 画面へ戻る
+      redirect_to control_screen_battle_path(@battle)
     end
   end
 
   # =========================
-  # メイン戦闘画面（じゃんけん＋ログ＋手札）
+  # A画面: 敵＆背景だけ表示する画面
   # =========================
-  def show
+  def view_screen
+    @battle = Battle.find_by(id: params[:id]) or
+      return redirect_to(
+        new_battle_path(player_id: session[:player_id]),
+        alert: 'バトルが見つかりません。'
+      )
+
+    # view_screen.html.erb では
+    # @battle.enemy.image_url や @battle.background_url を表示してあげる
+  end
+
+  # =========================
+  # B画面: じゃんけん＋ログ＋手札（元の show の中身）
+  # =========================
+  def control_screen
     @battle = Battle.find_by(id: params[:id]) or
       return redirect_to(
         new_battle_path(player_id: session[:player_id]),
@@ -191,6 +206,13 @@ class BattlesController < ApplicationController
 
     # ★ じゃんけんしていい状態かどうか
     @can_janken = @battle.flags&.dig('can_janken') == true
+  end
+
+  # =========================
+  # 互換用: /battles/:id は B 画面へリダイレクト
+  # =========================
+  def show
+    redirect_to control_screen_battle_path(params[:id])
   end
 
   # =========================
@@ -298,7 +320,7 @@ class BattlesController < ApplicationController
         alert: 'バトルが見つかりません。'
       )
 
-    return redirect_to(battle_path(@battle)) if @battle.ongoing?
+    return redirect_to(control_screen_battle_path(@battle)) if @battle.ongoing?
 
     logs = (@battle.flags || {})['logs'] || []
 

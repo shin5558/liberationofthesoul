@@ -1,0 +1,41 @@
+<%# A画面：ストーリー（今はプロローグ = 街） %>
+<% content_for :body_class, "story-view-only" %>
+
+<div class="story-view-wrapper">
+  <%= image_tag "prologue_bg.png",
+                alt: "中世の街で人々がざわめく様子",
+                class: "story-prologue-bg" %>
+</div>
+
+<script>
+  (function() {
+    var currentMode = "<%= session[:screen_mode].presence || 'title' %>";
+
+    function pathForMode(mode) {
+      switch (mode) {
+        case 'title':     return "<%= screen_title_path %>";
+        case 'character': return "<%= screen_character_path %>";
+        case 'summary':   return "<%= screen_summary_path %>";
+        case 'story':     return "<%= screen_story_path %>";
+        case 'battle':    return "<%= screen_battle_path %>";
+        default:          return "<%= screen_title_path %>";
+      }
+    }
+
+    async function checkMode() {
+      try {
+        const res = await fetch("<%= screen_mode_path %>", { cache: "no-store" });
+        if (!res.ok) return;
+        const mode = (await res.text()).trim();
+        if (!mode || mode === currentMode) return;
+
+        currentMode = mode;
+        window.location.href = pathForMode(mode);
+      } catch (e) {
+        console.warn("screen mode check failed", e);
+      }
+    }
+
+    setInterval(checkMode, 2000);
+  })();
+</script>

@@ -1,0 +1,45 @@
+<%# A画面：キャラ作成中（妖精＋森） %>
+<% content_for :body_class, "story-view-only" %>
+
+<div class="screen-character-wrapper">
+  <%= image_tag "A_digital_painting_depicts_an_enchanted_forest_bat.png",
+                alt: "妖精が棲む幻想的な森",
+                class: "screen-character-bg-image" %>
+
+  <%= image_tag "A_2D_digital_illustration_of_a_fairy_woman_showcas.png",
+                alt: "大妖精",
+                class: "screen-character-fairy" %>
+</div>
+
+<script>
+  (function() {
+    var currentMode = "<%= session[:screen_mode].presence || 'title' %>";
+
+    function pathForMode(mode) {
+      switch (mode) {
+        case 'title':     return "<%= screen_title_path %>";
+        case 'character': return "<%= screen_character_path %>";
+        case 'summary':   return "<%= screen_summary_path %>";
+        case 'story':     return "<%= screen_story_path %>";
+        case 'battle':    return "<%= screen_battle_path %>";
+        default:          return "<%= screen_title_path %>";
+      }
+    }
+
+    async function checkMode() {
+      try {
+        const res = await fetch("<%= screen_mode_path %>", { cache: "no-store" });
+        if (!res.ok) return;
+        const mode = (await res.text()).trim();
+        if (!mode || mode === currentMode) return;
+
+        currentMode = mode;
+        window.location.href = pathForMode(mode);
+      } catch (e) {
+        console.warn("screen mode check failed", e);
+      }
+    }
+
+    setInterval(checkMode, 2000);
+  })();
+</script>

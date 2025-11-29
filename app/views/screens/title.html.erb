@@ -1,0 +1,54 @@
+<% content_for :body_class, "story-view-only" %>
+
+<div class="story-view-wrapper">
+  <div class="story-view-bg title-bg">
+    <%= image_tag "title_screen.jpg",
+          alt: "Liberation of the Soul",
+          class: "title-full-image" %>
+  </div>
+</div>
+
+    <%# タイトルロゴとか、あればここに %>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // いま開いている画面がどのモードか（初期値）
+    var currentMode = "<%= session[:screen_mode].presence || 'title' %>";
+
+    function pathForMode(mode) {
+      switch (mode) {
+        case 'title':
+          return "<%= screen_title_path %>";
+        case 'character':
+          return "<%= screen_character_path %>";
+        case 'story':
+          return "<%= screen_story_path %>";
+        case 'battle':
+          return "<%= screen_battle_path %>";
+        default:
+          return "<%= screen_title_path %>";
+      }
+    }
+
+    async function checkMode() {
+      try {
+        const res  = await fetch("<%= screen_mode_path %>", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const mode = (await res.text()).trim();
+        if (!mode || mode === currentMode) return;
+
+        // モードが変わっていたら、対応する /screen/xxx に飛び直す
+        currentMode = mode;
+        window.location.href = pathForMode(mode);
+      } catch (e) {
+        console.warn("screen mode check failed", e);
+      }
+    }
+
+    // 2秒ごとに確認（お好みで 1000〜3000ms に調整）
+    setInterval(checkMode, 2000);
+  })();
+</script>
