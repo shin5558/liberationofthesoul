@@ -1,16 +1,30 @@
-<!-- app/views/stories/prologue.html.erb -->
-
 <h1>プロローグ</h1>
 
-<p>
-  闇がゆっくりと世界を覆いはじめた頃――<br>
-  山と森に囲まれた小さな王国で、一人の冒険者が静かに目を覚ます。
-</p>
+<section id="prologue-script">
+  <p class="prologue-line prologue-line--narrator is-narrator"
+     data-line-id="narrator_1">
+    闇がゆっくりと世界を覆いはじめた頃――
+    山と森に囲まれた小さな王国で、一人の冒険者が静かに目を覚ます。
+  </p>
 
-<p style="margin-top: 12px;">
-  その名は <strong><%= current_player&.name_kana || "あなた" %></strong>。<br>
-  まだ自分の運命も、この国に迫る脅威の正体も知らないまま…。
-</p>
+  <p class="prologue-line prologue-line--narrator is-narrator"
+     data-line-id="narrator_2">
+    その名は <strong><%= current_player&.name_kana || "あなた" %></strong>。<br>
+    まだ自分の運命も、この国に迫る脅威の正体も知らないまま…。物語は、ここから静かに動き出します。
+  </p>
+
+  <p class="prologue-line prologue-line--fairy is-fairy"
+     data-line-id="fairy_1">
+    「……あ、やっと起きた。ふふ、ずっと待ってたんだよ。<br>
+     わたしはリュミエル。これからあなたのそばで案内役をする妖精です。」
+  </p>
+
+  <p class="prologue-line prologue-line--fairy is-fairy"
+     data-line-id="fairy_2">
+    「怖がらなくて大丈夫。世界が少し暗くなっていても、<br>
+     あなたと一緒なら、きっと光を取り戻せるから。」
+  </p>
+</section>
 
 <hr>
 
@@ -18,3 +32,79 @@
 <ul>
   <li><%= link_to "第1戦へ進む（分岐1へ）", branch1_choice_story_path, class: "btn" %></li>
 </ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ JS から表示するボタン %>
+  <button id="prologue-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順
+    const order = ["narrator_1", "narrator_2", "fairy_1", "fairy_2"];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document.querySelectorAll(".prologue-line").forEach(function (el) {
+      const id = el.dataset.lineId;
+      lineEls[id] = el;
+    });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = new Audio();
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      audio.src = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          // 自動再生がブロックされたらボタンを見せる
+          const btn = document.getElementById("prologue-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    // ボタンは「バックアップ用」
+    const btn = document.getElementById("prologue-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ★ ページ表示後に自動で再生開始を試みる
+    // 少し待ってレイアウトが落ち着いてから始める
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

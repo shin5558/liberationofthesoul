@@ -43,6 +43,8 @@ Rails.application.routes.draw do
     get :character_summary # ← キャラ作成結果の画面
     get :prologue
     get :branch1_choice
+    get  :goblin_intro
+    get  :thief_intro
     post :go_goblin
     post :go_thief
     get :after_goblin
@@ -57,4 +59,10 @@ Rails.application.routes.draw do
     post :go_demonlord
     get :ending
   end
+
+  # ボイス
+  get 'voices/prologue',     to: 'voices#prologue'
+  get 'voices/branch1',      to: 'voices#branch1'
+  get 'voices/goblin_intro', to: 'voices#goblin_intro'
+  get 'voices/thief_intro',  to: 'voices#thief_intro'
 end

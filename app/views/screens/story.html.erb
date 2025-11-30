@@ -1,10 +1,123 @@
-<%# A画面：ストーリー（今はプロローグ = 街） %>
+<%# A画面：ストーリー（プロローグ〜分岐など） %>
 <% content_for :body_class, "story-view-only" %>
 
 <div class="story-view-wrapper">
-  <%= image_tag "prologue_bg.png",
-                alt: "中世の街で人々がざわめく様子",
-                class: "story-prologue-bg" %>
+  <%# -------------------------
+     1) キャラ作成完了：光の背景
+     ------------------------- %>
+  <% if @step == 'character_summary' %>
+    <%= image_tag "character_summary_bg.png",
+          alt: "キャラ作成完了の光の背景",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     2) プロローグ：街の背景
+     ------------------------- %>
+  <% elsif @step == 'prologue' %>
+    <%= image_tag "prologue_bg.png",
+          alt: "中世の街で人々がざわめく様子",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     3) 分岐1：森の手前（馬車＋森）
+     ------------------------- %>
+  <% elsif @step == 'branch1_choice' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "森の手前の街道と馬車",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     4) ゴブリン戦導入
+     ------------------------- %>
+  <% elsif @step == 'goblin_intro' %>
+    <%= image_tag "goblin_bg.png",
+          alt: "ゴブリンとの戦いの舞台",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     5) 盗賊戦導入
+     ------------------------- %>
+  <% elsif @step == 'thief_intro' %>
+    <%= image_tag "thief_bg.png",
+          alt: "土竜盗賊団との対峙の場面",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     6) その後のシーン（背景だけ）
+     ------------------------- %>
+  <% elsif @step == 'after_goblin' %>
+    <%= image_tag "road_bg.png",
+          alt: "街道",
+          class: "story-prologue-bg" %>
+
+  <% elsif @step == 'after_thief' %>
+    <%= image_tag "village_bg.png",
+          alt: "村の広場",
+          class: "story-prologue-bg" %>
+
+  <%# -------------------------
+     7) デフォルト（迷ったらプロローグ背景）
+     ------------------------- %>
+  <% else %>
+    <%= image_tag "prologue_bg.png",
+          alt: "物語の舞台",
+          class: "story-prologue-bg" %>
+  <% end %>
 </div>
 
 <script>
@@ -24,7 +137,7 @@
 
     async function checkMode() {
       try {
-        const res = await fetch("<%= screen_mode_path %>", { cache: "no-store" });
+        const res  = await fetch("<%= screen_mode_path %>", { cache: "no-store" });
         if (!res.ok) return;
         const mode = (await res.text()).trim();
         if (!mode || mode === currentMode) return;

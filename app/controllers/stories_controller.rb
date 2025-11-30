@@ -138,28 +138,42 @@ class StoriesController < ApplicationController
 
   def prologue
     session[:screen_mode] = 'story' # ← A を街の画面へ
-    # ビュー側は prologue.html.erb のままでOK
+    # 進行状況も prologue にしておく（A画面で背景を選ぶのに使う）
+    @progress.update!(current_step: 'prologue') if @progress
   end
 
   # =========================
   # 1つ目の分岐（B画面）
   # =========================
   def branch1_choice
-    session[:screen_mode]  = 'story'
-    session[:story_scene]  = 'branch1_choice'
-    # ここは画面の文言だけなら特にロジックなしでOK
+    session[:screen_mode] = 'story'
   end
 
+  # ★ 追加：ゴブリン戦の前のストーリー画面
+  def goblin_intro
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'goblin_intro')
+    # view: app/views/stories/goblin_intro.html.erb を表示
+  end
+
+  # ★ 追加：盗賊戦の前のストーリー画面
+  def thief_intro
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'thief_intro')
+    # view: app/views/stories/thief_intro.html.erb を表示
+  end
+
+  # ▼ ここを書き換える
   def go_goblin
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'goblin_battle')
-    redirect_to new_battle_path(player_id: @player.id, enemy_type: 'goblin')
+    @progress.update!(current_step: 'goblin_intro')
+    redirect_to goblin_intro_story_path
   end
 
   def go_thief
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'thief_battle')
-    redirect_to new_battle_path(player_id: @player.id, enemy_type: 'thief')
+    @progress.update!(current_step: 'thief_intro')
+    redirect_to thief_intro_story_path
   end
 
   def after_goblin

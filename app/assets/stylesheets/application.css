@@ -773,3 +773,90 @@ body.story-view-only .site-main {
     drop-shadow(0 0 24px rgba(255, 255, 255, 0.9))
     drop-shadow(0 0 60px rgba(255, 255, 255, 0.4));
 }
+
+/* ==============================
+   プロローグ／分岐テキスト共通
+   ============================== */
+
+/* B画面側のテキスト領域（必要なら使う） */
+.story-prologue-text {
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* ==============================
+   プロローグ／分岐テキスト共通
+   ============================== */
+
+/* セリフ1行ぶんのベース（prologue-line も story-line も同じデザイン） */
+.story-line,
+.prologue-line {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: storyFadeIn 0.6s ease forwards;
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.35s ease-out,
+    box-shadow 0.35s ease-out;
+}
+
+/* 今しゃべっている行だけ、ふわっと浮き出る */
+.story-line.is-speaking,
+.prologue-line.is-speaking {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* 役ごとの色（プロローグ／分岐／導入 共通） */
+.is-narrator     { color: #e5e7eb; }   /* ナレーション */
+.is-fairy        { color: #f9a8d4; }   /* 妖精リュミエル */
+.is-voice        { color: #fca5a5; }   /* 遠くの悲鳴など */
+.is-goblin       { color: #bbf7d0; }   /* ゴブリン */
+.is-thief,
+.is-thief-leader { color: #fde68a; }   /* 盗賊・盗賊団長 */
+
+/* セリフのフェードイン */
+@keyframes storyFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 背景の上にキャラと妖精を重ねるレイヤー */
+.story-character-layer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* B画面操作の邪魔をしない */
+}
+
+/* 主人公の立ち絵（大きめ） */
+.story-avatar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 75vh; /* 大きさはお好みで調整 */
+  z-index: 10;
+}
+
+/* 妖精リュミエル（小さめ & 空中に浮いてる） */
+.story-fairy {
+  position: absolute;
+  bottom: 40%;
+  left: 65%;
+  transform: translate(-50%, -50%);
+  height: 22vh; /* 小さめの妖精サイズ */
+  z-index: 20;
+  opacity: 0.95;
+}

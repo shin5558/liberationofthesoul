@@ -1,30 +1,89 @@
-森前の画像を背景に
-妖精「先の方に倒れた馬車とその近くにゴブリンが３匹いるよ」
-森の方から「＃＄％＆〜」
-妖精「今のは、・・・悲鳴？」
-分岐1　道の先に馬車とゴブリンがいるが、森の方から悲鳴が聞こえた気がする。どうする？
-選択肢1-A 悲鳴は気のせいだろう。目の前のゴブリンを倒す。
-選択肢1-B 悲鳴が気になる、森の中へ確認に行く。
+<h1>分岐1：森の手前</h1>
 
-選択肢1-A
-  ゴブリン戦の画像を背景に
-  ゴブリン達「ゲリャッゲリャッ」
-  妖精「流石にここまで近づいたら気づいたみたい。気をつけてね。」
-  ゴブリン達との先頭に入る
-つぎ
+<div class="story-text-block">
+  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+    森の入口へと続く街道。その先で、何かが横たわっている。近づくにつれ、それが横倒しになった馬車と、その周囲をうろつく小さな影だと分かってくる。
+  </p>
 
-選択肢1-B
-  盗賊戦の画像を背景に
-  悲鳴が聞こえた方向に突き進むと少しひらけた場所に人影を見つけた
-  近づくとそこには、縛られた女性と、それを取り囲む三人の男達がいた
-  盗賊「ん？なんだぁおまえは」
-  妖精「あんた達こそ何者よ」
-  盗賊「俺たちは、土竜盗賊団だ。お前さんその妖精を置いていきな、そうしたらお前さんだけは逃してやる」
-  妖精「嫌に決まっているでしょ！」
-  盗賊「しょうがねぇ。お前らも売り物にしてやるよ！」
-  盗賊達との先頭に入る
-つぎ
+  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+    「……先の方に倒れた馬車と、その近くにゴブリンが三匹いるよ。」
+  </p>
 
-<%= link_to "デバッグ用バトルへ",
-            battle_path(1),
-            class: "btn" %>
+  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+    耳をすませると、風の流れとは違う、不自然な音が混じっている気がする。
+  </p>
+
+  <p class="story-line is-voice js-line" data-line-id="voice_1">
+    「……たすけて……！」
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+    「今のは……、悲鳴……？」
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+    道の先では、今にも馬車をあさろうとするゴブリンたち。一方で、森の奥からは、確かに誰かの助けを求める声が聞こえた気がする。
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_3">
+    「道の先には、馬車とゴブリン。でも、森の方からも誰かの声が聞こえたよ……。どうする？」
+  </p>
+</div>
+
+<hr>
+
+<p>分岐1：どうする？</p>
+<ul>
+  <li>
+    <%= button_to "悲鳴は気のせいだろう。目の前のゴブリンを倒す。",
+                  go_goblin_story_path,
+                  method: :post,
+                  class: "btn" %>
+  </li>
+  <li>
+    <%= button_to "悲鳴が気になる、森の中へ確認に行く。",
+                  go_thief_story_path,
+                  method: :post,
+                  class: "btn" %>
+  </li>
+</ul>
+
+<audio id="scene-audio"></audio>
+
+<script>
+  (function() {
+    const lines = [
+      "narrator_1",
+      "fairy_1",
+      "narrator_2",
+      "voice_1",
+      "fairy_2",
+      "narrator_3",
+      "fairy_3"
+    ];
+
+    const audioEl = document.getElementById("scene-audio");
+
+    function highlight(lineId) {
+      document.querySelectorAll(".js-line").forEach(el => {
+        el.classList.remove("is-speaking");
+      });
+      const target = document.querySelector(`.js-line[data-line-id="${lineId}"]`);
+      if (target) target.classList.add("is-speaking");
+    }
+
+    async function playLine(index) {
+      if (index >= lines.length) return;
+      const id = lines[index];
+      highlight(id);
+
+      audioEl.src = `/voices/branch1?line=${encodeURIComponent(id)}`;
+      audioEl.play().catch(() => {});
+      audioEl.onended = () => playLine(index + 1);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      playLine(0);
+    });
+  })();
+</script>

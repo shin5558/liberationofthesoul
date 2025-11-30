@@ -1,0 +1,71 @@
+<h1>ゴブリンとの遭遇</h1>
+
+<div class="story-text-block">
+  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+    あなたは、まず目の前の脅威に集中することにした。森の奥の声は気になるが、倒れた馬車とゴブリンたちを放置しておくわけにもいかない。
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+    「分かった。まずはこのゴブリンたちから片付けよう。あの馬車の人たちが無事かどうか、気になるしね。」
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+    足音を殺し、ゴブリンたちとの距離を少しずつ詰めていく。しかし、やがて彼らもこちらの存在に気づき、ぎょろりとした目を向けてきた。
+  </p>
+
+  <p class="story-line is-goblin js-line" data-line-id="goblin_1">
+    「ゲリャッ、ゲリャッ！！」
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+    「流石にここまで近づいたら、気づいたみたい。気をつけてね、あの子たち、集団で来ると結構やっかいだから。」
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+    ゴブリンたちは歯をむき出しにしながら武器を振り上げ、一斉に飛びかかってくる。ここから――最初の本格的な戦いが始まる。
+  </p>
+</div>
+
+<hr>
+
+<p>「ゴブリン達との戦闘に入る」</p>
+<%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "goblin"), class: "btn" %>
+
+<audio id="scene-audio"></audio>
+
+<script>
+  (function() {
+    const lines = [
+      "narrator_1",
+      "fairy_1",
+      "narrator_2",
+      "goblin_1",
+      "fairy_2",
+      "narrator_3"
+    ];
+
+    const audioEl = document.getElementById("scene-audio");
+
+    function highlight(lineId) {
+      document.querySelectorAll(".js-line").forEach(el => {
+        el.classList.remove("is-speaking");
+      });
+      const target = document.querySelector(`.js-line[data-line-id="${lineId}"]`);
+      if (target) target.classList.add("is-speaking");
+    }
+
+    async function playLine(index) {
+      if (index >= lines.length) return;
+      const id = lines[index];
+      highlight(id);
+
+      audioEl.src = `/voices/goblin_intro?line=${encodeURIComponent(id)}`;
+      audioEl.play().catch(() => {});
+      audioEl.onended = () => playLine(index + 1);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      playLine(0);
+    });
+  })();
+</script>

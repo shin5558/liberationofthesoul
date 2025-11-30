@@ -1,0 +1,91 @@
+<h1>土竜盗賊団との遭遇</h1>
+
+<div class="story-text-block">
+  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+    あなたは、森の奥から聞こえた悲鳴を見過ごすことができなかった。倒れた馬車とゴブリンたちは気になるものの、人の叫び声はもっと危険な兆しに思えた。
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+    「悲鳴の方に行くんだね……分かった、一緒に行こう。急ごう、誰かが本当に助けを求めているかもしれない。」
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+    枝をかき分け、声の聞こえた方向へと進んでいく。やがて木々が途切れ、少しひらけた場所に出たそのとき――。
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+    そこには、縄で縛られて地面に座り込む一人の女性と、その周囲を取り囲む三人の男たちの姿があった。
+  </p>
+
+  <p class="story-line is-thief js-line" data-line-id="thief_1">
+    「ん？ なんだぁ、おまえは。」
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+    「そっちこそ何者よ。縛られた人を囲んで……いい趣味してないわね。」
+  </p>
+
+  <p class="story-line is-thief-leader js-line" data-line-id="thief_leader_1">
+    「俺たちは、土竜盗賊団だ。……お前さん、その妖精を置いていきな。そうしたら、お前さんだけは見逃してやる。」
+  </p>
+
+  <p class="story-line is-fairy js-line" data-line-id="fairy_3">
+    「嫌に決まっているでしょ！ わたしは、この人と一緒に行くって決めたんだから！」
+  </p>
+
+  <p class="story-line is-thief-leader js-line" data-line-id="thief_leader_2">
+    「……チッ。惜しいことをする。しょうがねぇ、お前らも売り物にしてやるよ！」
+  </p>
+
+  <p class="story-line is-narrator js-line" data-line-id="narrator_4">
+    盗賊たちが一斉に武器を構え、にやりと笑う。森の静寂は破られ、張り詰めた空気の中で、決戦の時を告げる鼓動だけが響いていた。
+  </p>
+</div>
+
+<hr>
+
+<p>「盗賊達との戦闘に入る」</p>
+<%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "thief"), class: "btn" %>
+
+<audio id="scene-audio"></audio>
+
+<script>
+  (function() {
+    const lines = [
+      "narrator_1",
+      "fairy_1",
+      "narrator_2",
+      "narrator_3",
+      "thief_1",
+      "fairy_2",
+      "thief_leader_1",
+      "fairy_3",
+      "thief_leader_2",
+      "narrator_4"
+    ];
+
+    const audioEl = document.getElementById("scene-audio");
+
+    function highlight(lineId) {
+      document.querySelectorAll(".js-line").forEach(el => {
+        el.classList.remove("is-speaking");
+      });
+      const target = document.querySelector(`.js-line[data-line-id="${lineId}"]`);
+      if (target) target.classList.add("is-speaking");
+    }
+
+    async function playLine(index) {
+      if (index >= lines.length) return;
+      const id = lines[index];
+      highlight(id);
+
+      audioEl.src = `/voices/thief_intro?line=${encodeURIComponent(id)}`;
+      audioEl.play().catch(() => {});
+      audioEl.onended = () => playLine(index + 1);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      playLine(0);
+    });
+  })();
+</script>
