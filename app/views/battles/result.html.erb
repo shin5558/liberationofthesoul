@@ -42,10 +42,8 @@
 
 <hr style="margin:20px 0;">
 
-<div style="display:flex; gap:12px; flex-wrap:wrap;">
-  <%= link_to "戦闘ログを見る", battle_path(@battle), class: "btn" %>
-  <%= link_to "もう一度戦う",
-              new_battle_path(player_id: (@battle&.player_id || session[:player_id])),
-              class: "btn" %>
-  <%= link_to "トップに戻る", root_path, class: "btn" %>
-</div>
+<% if @battle.enemy.code == "goblin" %>
+  <%= link_to "物語を進める", after_goblin_story_path, class: "btn" %>
+<% else %>
+  <%= link_to "物語を進める", after_thief_story_path, class: "btn" %>
+<% end %>

@@ -50,8 +50,16 @@ Rails.application.routes.draw do
     get :after_goblin
     get :after_thief
     get :branch2_choice
-    post :go_gatekeeper
-    post :go_general
+    # 分岐2（城下のA/B）
+    get  :gatekeeper_intro          # 2-A用：門番導入
+    get  :princess_meeting          # 2-B用：魔姫イベント
+    post :go_gatekeeper             # 2-A：門番ルートへ
+    post :go_princess               # 2-B：魔姫ルートへ
+    # 分岐3（魔姫ルート内のA/B）
+    get  :gatekeeper_from_princess  # 3-B専用：魔姫と別れた後の門番導入
+    get  :general_intro             # 3-A専用：将軍導入
+    post :go_general_from_princess      # 3-A：目的が同じなら手を貸す
+    post :go_gatekeeper_from_princess   # 3-B：魔族には手を貸せない
     get :after_gatekeeper
     get :after_general
     get :warehouse
@@ -65,4 +73,11 @@ Rails.application.routes.draw do
   get 'voices/branch1',      to: 'voices#branch1'
   get 'voices/goblin_intro', to: 'voices#goblin_intro'
   get 'voices/thief_intro',  to: 'voices#thief_intro'
+  get 'voices/after_goblin', to: 'voices#after_goblin'
+  get 'voices/after_thief', to: 'voices#after_thief'
+  get 'voices/branch2', to: 'voices#branch2'
+  get 'voices/gatekeeper_intro', to: 'voices#gatekeeper_intro'
+  get 'voices/princess_meeting', to: 'voices#princess_meeting'
+  get 'voices/general_intro', to: 'voices#general_intro'
+  get 'voices/gatekeeper_from_princess', to: 'voices#gatekeeper_from_princess'
 end

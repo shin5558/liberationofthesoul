@@ -1,0 +1,145 @@
+<!-- app/views/stories/gatekeeper_intro.html.erb -->
+
+<h1>城門の前で</h1>
+
+<section id="gatekeeper-intro-script">
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    魔王城へと続く大通りを抜けると、視界の先に巨大な城門がそびえ立つ。<br>
+    鋭い棘のついた鉄柵が、ここから先は簡単には通さないと主張している。
+  </p>
+
+  <p class="prologue-line is-gatekeeper"
+     data-line-id="gatekeeper_1">
+    「そこの人間、止まれ！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「なに、邪魔するの？」
+  </p>
+
+  <p class="prologue-line is-gatekeeper"
+     data-line-id="gatekeeper_2">
+    「ああ、そういう仕事なんでな。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「いいの？ こんなことしてて。<br>
+     魔王を止めないと、あなたもどうなるかわからないんだよ？」
+  </p>
+
+  <p class="prologue-line is-gatekeeper"
+     data-line-id="gatekeeper_3">
+    「俺は仕事をするだけだ。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「この堅物には、話は通じないみたい…。<br>
+     倒そう、<%= current_player&.name_kana || "あなた" %>！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    門番は槍を構え、城門の前に立ちはだかる。<br>
+    ここを越えなければ、魔王城には辿り着けない――最初の関門の戦いが、今始まろうとしていた。
+  </p>
+</section>
+
+<hr>
+
+<p>門番との戦闘に入ります。</p>
+<ul>
+  <li>
+    <%= link_to "戦闘開始",
+                new_battle_path(player_id: current_player&.id, enemy_type: "gatekeeper"),
+                class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="gatekeeper-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="gatekeeper-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ★ 読み上げ順（上から順番）
+    const order = [
+      "narrator_1",
+      "gatekeeper_1",
+      "fairy_1",
+      "gatekeeper_2",
+      "fairy_2",
+      "gatekeeper_3",
+      "fairy_3",
+      "narrator_2"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document.querySelectorAll("#gatekeeper-intro-script .prologue-line").forEach(function (el) {
+      const id = el.dataset.lineId;
+      if (id) lineEls[id] = el;
+    });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("gatekeeper-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      // ★ 門番導入用のボイスエンドポイント
+      audio.src = "/voices/gatekeeper_intro?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("gatekeeper-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("gatekeeper-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

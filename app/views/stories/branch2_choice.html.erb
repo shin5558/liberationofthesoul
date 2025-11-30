@@ -1,66 +1,171 @@
-魔王国城下町の画像を背景に
-妖精「ついたね、ここが魔王国の城下町だよ」
-妖精「今ここにいる魔族（ひと）達は、戦いが得意ではないみたいだね」
-妖精「戦える魔族（ひと）達は、城に集められてるみたい」
-？？「そこの方、妖精と共にいる方」
-妖精「だれ！？」
-フード付きのローブで全身を隠した者が路地から話しかけてきた
-？？「魔王を倒したいなら私たちと協力しませんか？」
-妖精「協力したいなら姿を見せてよ」
-妖精「あなたみたいな姿を見せない怪しい魔族（ひと）とは、協力なんて無理だよ」
-？？「今ここで姿を晒すのは難しいのでこちらに来ていただけますか？」
-選択肢2-A 信用できない、無視してこのまま魔王城へ急ぐ
-選択肢2-B 信じてついていくことにする
+<!-- app/views/stories/branch2_choice.html.erb -->
 
-選択肢2-A
-  門前の画像を背景に
-  門番「そこの人間止まれ！」
-  妖精「なに、邪魔するの？」
-  門番「ああ、そういう仕事なんでな」
-  妖精「いいの？こんなことしてて。魔王を止めないとあなたもどうなるかわからないんだよ？」
-  門番「俺は仕事をするだけだ」
-  妖精「この堅物に話は通じないみたい。倒そうprayername」
-  門番との戦闘に入る
-つぎ
+<h1>魔王国の城下町にて</h1>
 
-選択肢2-B
-  路地裏の画像を背景に
-  ？？「ここなら大丈夫でしょう」
-  そういうと、フードを下ろした
-  ？？「わたしは魔王の娘よ、皆からは魔姫と呼ばれてるわ」
-  妖精「なんで魔王の娘がここに」
-  魔姫「それは、あの魔王を止めるためよそのために反乱軍を立ち上げたわ」
-  反乱軍と思しき魔族達が現れる
-  魔姫「魔王軍は止められても魔王にまで届くかが怪しいの」
-  魔姫「だからあなたに手を貸して欲しいの」
-  選択肢3-A 目的が同じなら手を貸す
-  選択肢3-B 魔族には手を貸せない
+<section id="branch2-choice-script">
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「ついたね、ここが魔王国の城下町だよ。」
+  </p>
 
-  選択肢3-A
-    地下通路の画像を背景に
-    魔姫「ありがとう、王族だけが知っている秘密の通路があるのそこから魔王城へ入れるわ」
-    妖精「そんなこと私たちに教えてもいいの？」
-    魔姫「しょうがないわよ、こんなことが起こったんだから。そろそろ広間に出るわよ」
-    地下通路の広間の画像を背景に
-    ？？「わっはっは、待っていたぞ」
-    魔姫「あなたは将軍！？なぜここに」
-    将軍「城下に不審な者がいると報告を受けてな。部下に調べさせれば姫様をみたと言う者がいると言う」
-    将軍「城には帰ってきていた様だが詰めが甘かった様だな。」
-    魔姫「見つかってしまったからには倒すしかないわ。お願いprayername」
-    将軍との戦闘に入る
-  つぎ
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「今ここにいる魔族（ひと）達は、戦いが得意ではないみたいだね。」
+  </p>
 
-  選択肢3-B 
-    魔姫「そう、残念だわ。手を貸してくれたら嬉しかったのだけど。それじゃあね」
-    そう言うと魔姫は去っていた
-    妖精「prayername門の方に行こう！」
-    門前の画像を背景に
-    門番「そこの人間止まれ！」
-    妖精「なに、邪魔するの？」
-    門番「ああ、そういう仕事なんでな」
-    妖精「いいの？こんなことしてて。魔王を止めないとあなたもどうなるかわからないんだよ？」
-    門番「俺は仕事をするだけだ」
-    妖精「この堅物に話は通じないみたい。倒そうprayername」
-    門番との戦闘に入る
-  つぎ
-つぎ
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「戦える魔族（ひと）達は、城に集められてるみたい。」
+  </p>
+
+  <p class="prologue-line is-voice"
+     data-line-id="unknown_1">
+    「――そこの方、妖精と共にいる方。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_4">
+    「だれ！？」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    フード付きのローブで全身を隠した者が、路地の陰からこちらへ声をかけてきた。<br>
+    その姿は、光の届かない闇に溶け込んでいて、顔の表情まではうかがえない。
+  </p>
+
+  <p class="prologue-line is-voice"
+     data-line-id="unknown_2">
+    「魔王を倒したいなら、私たちと協力しませんか？」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_5">
+    「協力したいなら、まずは姿を見せてよ。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_6">
+    「あなたみたいな、姿を見せない怪しい魔族（ひと）とは、協力なんて無理だよ。」
+  </p>
+
+  <p class="prologue-line is-voice"
+     data-line-id="unknown_3">
+    「今ここで姿を晒すのは難しいので……こちらに来ていただけますか？」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    ここで、あなたはどうするかを決めなければならない。<br>
+    この怪しい誘いを退け、そのまま魔王城へ向かうか。<br>
+    それとも、危険を承知で、この人物の話に乗ってみるか――。
+  </p>
+</section>
+
+<hr>
+
+<p>どうする？</p>
+<ul>
+  <li>
+    <%# 選択肢 2-A: 信用しない → 門番ルートへ %>
+    <%= button_to "2-A：信用できない、無視してこのまま魔王城へ急ぐ",
+                  go_gatekeeper_story_path,
+                  method: :post,
+                  class: "btn" %>
+  </li>
+  <li>
+    <%# 選択肢 2-B: 信じてついていく → 魔姫ルートへ %>
+    <%= button_to "2-B：信じてついていくことにする",
+                  go_princess_story_path,
+                  method: :post,
+                  class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="branch2-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="branch2-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ★ 読み上げ順（好きな順番に調整OK）
+    const order = [
+      "fairy_1",
+      "fairy_2",
+      "fairy_3",
+      "unknown_1",
+      "fairy_4",
+      "narrator_1",
+      "unknown_2",
+      "fairy_5",
+      "fairy_6",
+      "unknown_3",
+      "narrator_2"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document.querySelectorAll("#branch2-choice-script .prologue-line").forEach(function (el) {
+      const id = el.dataset.lineId;
+      if (id) lineEls[id] = el;
+    });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("branch2-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      // ★ branch2 用のボイスエンドポイント
+      audio.src = "/voices/branch2?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("branch2-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("branch2-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

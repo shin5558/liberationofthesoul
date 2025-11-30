@@ -15,14 +15,27 @@ class BattlesController < ApplicationController
 
     session[:player_id] = @player.id
 
+    # どの敵でやりたいか（URL から来る指定。例: "goblin", "thief"）
+    requested_enemy_code = params[:enemy_type].presence
+
     # 進行中バトルがあればそれを再利用
     @battle = Battle.find_by(player: @player, status: :ongoing)
 
-    unless @battle
-      # ★ enemy_type → ここで決める
-      enemy_code = params[:enemy_type].presence || 'goblin'
+    # もし進行中バトルはあるけど、URL で「別の敵」が指定されていたら、
+    # その古いバトルは終了扱いにして、新しく作り直す。
+    if @battle && requested_enemy_code.present? && @battle.enemy.code != requested_enemy_code
+      @battle.update(status: :finished)
+      @battle = nil
+    end
 
-      enemy = Enemy.find_by(code: enemy_code)
+    unless @battle
+      # ★ ここで enemy_type を見て Enemy を決める
+      enemy_code = requested_enemy_code || 'goblin'
+      enemy      = Enemy.find_by(code: enemy_code)
+
+      # 万一見つからなかったときの保険（デフォルトでゴブリン）
+      enemy ||= Enemy.find_by(code: 'goblin')
+
       unless enemy
         redirect_to root_path, alert: "指定された敵（#{enemy_code}）が存在しません。"
         return
@@ -34,7 +47,7 @@ class BattlesController < ApplicationController
         enemy: enemy,
         status: :ongoing,
         turns_count: 0,
-        flags: {}
+        flags: { 'enemy_code' => enemy.code }
       )
 
       # ★ 無属性カード 1 枚

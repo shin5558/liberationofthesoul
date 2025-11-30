@@ -190,18 +190,53 @@ class StoriesController < ApplicationController
 
   def branch2_choice
     session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'branch2_choice')
   end
 
   def go_gatekeeper
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'gatekeeper_battle')
-    redirect_to new_battle_path(player_id: @player.id, enemy_type: 'gatekeeper')
+    @progress.update!(current_step: 'gatekeeper_intro')
+    redirect_to gatekeeper_intro_story_path
   end
 
-  def go_general
+  def go_princess
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'general_battle')
-    redirect_to new_battle_path(player_id: @player.id, enemy_type: 'general')
+    @progress.update!(current_step: 'princess_meeting')
+    redirect_to princess_meeting_story_path
+  end
+
+  def go_general_from_princess
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'general_intro')
+    redirect_to general_intro_story_path
+  end
+
+  def go_gatekeeper_from_princess
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'gatekeeper_from_princess')
+    redirect_to gatekeeper_from_princess_story_path
+  end
+
+  # --- 画面表示系（GET） ---
+
+  def gatekeeper_intro
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'gatekeeper_intro')
+  end
+
+  def princess_meeting
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'princess_meeting')
+  end
+
+  def gatekeeper_from_princess
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'gatekeeper_from_princess')
+  end
+
+  def general_intro
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'general_intro')
   end
 
   def after_gatekeeper

@@ -1,0 +1,205 @@
+<!-- app/views/stories/princess_meeting.html.erb -->
+
+<h1>路地裏の魔姫</h1>
+
+<section id="princess-meeting-script">
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    路地裏の奥へと案内され、周囲を見渡すと、人通りはほとんどなくなっていた。<br>
+    城下町の喧騒も遠く、ここだけが切り離された小さな空間のように静まり返っている。
+  </p>
+
+  <p class="prologue-line is-voice"
+     data-line-id="mystery_1">
+    「……ここなら大丈夫でしょう。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    そう言うと、フード付きのローブの人物は、ゆっくりとフードを下ろした。<br>
+    そこから現れたのは、どこか気品を漂わせた、若い魔族の女性の顔だった。
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_1">
+    「わたしは魔王の娘よ。<br>
+     皆からは『魔姫』と呼ばれているわ。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「ま、魔王の娘！？ なんでそんな人が、こんなところにいるの？」
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_2">
+    「それは――あの魔王を止めるためよ。<br>
+      そのために、わたしは反乱軍を立ち上げたの。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    魔姫が指を鳴らすと、路地の影から、数人の魔族たちが姿を現した。<br>
+    彼らの瞳は、恐れではなく、どこか決意に満ちた光を帯びている。
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_3">
+    「魔王軍を止めることだけなら、わたしたちだけでも、きっとなんとかなるでしょう。<br>
+      でも――肝心の魔王本人にまで、わたしたちの力が届くかどうかは分からない。」
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_4">
+    「だから、あなたに手を貸してほしいの。<br>
+      外の世界から来た、あなたの力を。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「ふーん……。<br>
+      でも、魔王の娘と組むなんて、普通に考えたらすっごく怪しい話だよね。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_4">
+    魔姫は一瞬だけ目を伏せ、そして真っ直ぐこちらを見つめ返してきた。<br>
+    その視線には、打算だけではない、揺るぎない覚悟のようなものが宿っている。
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_5">
+    「信じろとは言わないわ。<br>
+      それでも、目的は同じはず――この世界を、魔王の暴走から救うということ。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「どうする、<%= current_player&.name_kana || "あなた" %>？<br>
+      目的が同じなら、手を組むのもアリかもしれないけど……<br>
+      魔族（ひと）に手を貸すの、いやだっていう気持ちも分かるよ。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_5">
+    ここでの選択が、この先の道を大きく変えていく。<br>
+    反乱軍と共に秘密の通路から攻め込むか、それとも正面から正々堂々と挑むか――。
+  </p>
+</section>
+
+<hr>
+
+<p>どう行動しますか？</p>
+<ul>
+  <li>
+    <%# 選択肢 3-A：目的が同じなら手を貸す → 秘密の通路ルート（将軍戦へ） %>
+    <%= form_with url: go_general_from_princess_story_path, method: :post, local: true do %>
+      <button type="submit" class="btn">
+        選択肢 3-A：目的が同じなら手を貸す
+      </button>
+    <% end %>
+  </li>
+  <li>
+    <%# 選択肢 3-B：魔族には手を貸せない → 門番ルートに合流 %>
+    <%= form_with url: go_gatekeeper_from_princess_story_path, method: :post, local: true do %>
+      <button type="submit" class="btn">
+        選択肢 3-B：魔族には手を貸せない
+      </button>
+    <% end %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="princess-meeting-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="princess-meeting-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順（上から順に読む）
+    const order = [
+      "narrator_1",
+      "mystery_1",
+      "narrator_2",
+      "princess_1",
+      "fairy_1",
+      "princess_2",
+      "narrator_3",
+      "princess_3",
+      "princess_4",
+      "fairy_2",
+      "narrator_4",
+      "princess_5",
+      "fairy_3",
+      "narrator_5"
+    ];
+
+    const lineEls = {};
+    document
+      .querySelectorAll("#princess-meeting-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("princess-meeting-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      audio.src =
+        "/voices/princess_meeting?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("princess-meeting-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("princess-meeting-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

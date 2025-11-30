@@ -1,7 +1,158 @@
-ゴブリン戦闘後
-妖精「やったーゴブリンを倒したよ」
-妖精「prayername、お疲れ様。回復しておくね」
-妖精「あ、馬車の中にいいものがあるよ。はい」
-無属性カードを手渡される
-妖精「ほら、先へ進もう」
- branch2_choice.html.erb # 分岐2：門番 or 将軍　へ
+<h1>ゴブリン撃破後</h1>
+
+<section id="after-goblin-script">
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「やったぁ――！ ゴブリンを倒したよ！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「<strong><%= current_player&.name_kana || "あなた" %></strong>、お疲れ様。<br>
+     戦いで疲れたでしょ、ちょっと回復しておくね。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    リュミエルがそっと手を差し伸べると、柔らかな光が舞い上がり、<br>
+    あなたの身体を包み込む。重かった身体が、少しずつ軽くなっていく。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「あっ、ほら。馬車の中、何か光ってるよ……！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    倒れた馬車の荷台には、淡く光を放つ一枚のカードが転がっていた。<br>
+    まるで、持ち主を待っていたかのように。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_4">
+    「じゃーん！ 『無属性カード』だよ。<br>
+     誰でも使える便利なカードだから、きっと役に立つはず！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    あなたはカードを受け取り、そっとデッキにしまった。<br>
+    心なしか、指先に温かな力が宿ったように感じる。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_5">
+    「よし、ひと段落ついたね。<br>
+     でも、道はまだ続いてる……この先には、門番の砦があるはずだよ。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_4">
+    街道の先には、風に揺れる木々と、遠くにかすかに見える石造りの影。<br>
+    そこは、この国の運命を左右する分かれ道のひとつだった。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_6">
+    「ここから先は、どう進むかを決めなきゃいけないみたい。<br>
+     <strong><%= current_player&.name_kana || "あなた" %></strong>、準備はいい？」
+  </p>
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li>
+    <%= link_to "分岐2へ進む（門番か将軍か…）",
+                branch2_choice_story_path,
+                class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="after-goblin-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="after-goblin-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順
+    const order = [
+      "fairy_1",
+      "fairy_2",
+      "narrator_1",
+      "fairy_3",
+      "narrator_2",
+      "fairy_4",
+      "narrator_3",
+      "fairy_5",
+      "narrator_4",
+      "fairy_6"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document.querySelectorAll("#after-goblin-script .prologue-line").forEach(function (el) {
+      const id = el.dataset.lineId;
+      lineEls[id] = el;
+    });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("after-goblin-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      audio.src = "/voices/after_goblin?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("after-goblin-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("after-goblin-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

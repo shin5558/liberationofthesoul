@@ -10,7 +10,7 @@
   <p class="prologue-line prologue-line--narrator is-narrator"
      data-line-id="narrator_2">
     その名は <strong><%= current_player&.name_kana || "あなた" %></strong>。<br>
-    まだ自分の運命も、この国に迫る脅威の正体も知らないまま…。物語は、ここから静かに動き出します。
+    まだ自分の運命も、この国に迫る脅威の正体も知らないまま…。
   </p>
 
   <p class="prologue-line prologue-line--fairy is-fairy"
@@ -40,6 +40,8 @@
   </button>
 </div>
 
+<audio id="prologue-audio" style="display:none;"></audio> <%# ←残してもいいけど使わない %>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     // 再生順
@@ -47,9 +49,9 @@
 
     // DOM 要素を保持
     const lineEls = {};
-    document.querySelectorAll(".prologue-line").forEach(function (el) {
+    document.querySelectorAll("#prologue-script .prologue-line").forEach(function (el) {
       const id = el.dataset.lineId;
-      lineEls[id] = el;
+      if (id) lineEls[id] = el;
     });
 
     function setActive(lineId) {
@@ -57,12 +59,14 @@
         el.classList.remove("is-speaking");
       });
       if (lineId && lineEls[lineId]) {
-        lineEls[lineId].classList.add("is-speaking");
-        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+        el = lineEls[lineId];
+        el.classList.add("is-speaking");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
+    // ★ 匿名の Audio オブジェクトを使う（他の画面と同じ方式に戻す）
     const audio = new Audio();
 
     function playNext() {
@@ -100,8 +104,7 @@
       });
     }
 
-    // ★ ページ表示後に自動で再生開始を試みる
-    // 少し待ってレイアウトが落ち着いてから始める
+    // ページ表示後に自動で再生開始を試みる
     setTimeout(function () {
       currentIndex = -1;
       playNext();
