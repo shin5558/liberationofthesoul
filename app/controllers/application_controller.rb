@@ -19,6 +19,20 @@ class ApplicationController < ActionController::Base
   end
 
   def require_player!
-    redirect_to new_character_path, alert: 'キャラクターを作成してください。' unless current_player
+    # すでにプレイヤーがいればそのまま
+    return if current_player
+
+    # ★ 開発環境だけ、自動でデバッグ勇者を作る
+    if Rails.env.development?
+      player = Player.create!(
+        name: 'デバッグ勇者',
+        name_kana: 'デバッグユウシャ'
+      )
+      session[:player_id] = player.id
+      @current_player = player # current_player でも同じものが返るようにしておく
+    else
+      # 本番などでは、今まで通りキャラ作成画面へ
+      redirect_to new_character_path, alert: 'キャラクターを作成してください。'
+    end
   end
 end

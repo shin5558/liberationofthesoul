@@ -5,9 +5,7 @@ class VoicesController < ApplicationController
   require 'json'
 
   # VOICEVOX サーバー（必要なら 127.0.0.1:50021 を変えてね）
-  VOICEVOX_HOST = ENV.fetch('VOICEVOX_HOST', 'http://127.0.0.1:50021')
-
-  skip_forgery_protection
+  STYLEBERT_HOST = ENV.fetch('STYLEBERT_HOST', 'http://127.0.0.1:5000')
 
   # ==== プロローグ ====
   PROLOGUE_LINES = {
@@ -576,74 +574,70 @@ class VoicesController < ApplicationController
   def speak_from_hash(lines_hash)
     key = params[:line].to_s
 
-    # ★ まずはセッションからプレイヤーを探す
-    player = Player.find_by(id: session[:player_id])
-
-    # ★ 開発環境でプレイヤーがいない場合は、デバッグ用プレイヤーを自動作成
-    if Rails.env.development? && player.nil?
-      player = Player.create!(
-        name: 'デバッグ勇者',
-        name_kana: 'デバッグユウシャ'
-      )
-      session[:player_id] = player.id
-    end
+    player = current_player
 
     name = player&.name_kana.presence || 'あなた'
 
     builder = lines_hash[key]
     text    = builder ? builder.call(name) : '……。'
 
-    speaker_id = speaker_for(key)
-    wav        = synthesize(text, speaker_id)
+    voice_opts = speaker_for(key)
+    wav        = synthesize(text, voice_opts)
 
     send_data wav, type: 'audio/wav', disposition: 'inline'
   end
 
   def speaker_for(key)
+    base = {
+      model_name: 'amitaro', # エディタで使っていたモデル
+      language: 'JP',
+      style: 'Neutral',
+      style_weight: 1.0
+    }
+
     case key
     when /\Afairy/
-      3   # 妖精リュミエル
+      base.merge(speaker_name: 'あみたろ') # 妖精
     when /\Agoblin/
-      8   # ゴブリン
+      base.merge(speaker_name: 'あみたろ') # ゴブリン（別声が欲しければここで変える）
     when /\Athief/
-      5   # 盗賊
+      base.merge(speaker_name: 'あみたろ') # 盗賊
     when /\Awoman/
-      2   # 女性NPC
-
-    # === 新規キャラクター ===
+      base.merge(speaker_name: 'あみたろ') # 女性NPC
     when /\Aprincess/
-      2   # 魔姫（落ち着いた女性）
+      base.merge(speaker_name: 'あみたろ') # 魔姫
     when /\Amystery/
-      2   # 謎の人物（魔姫と同じ声でOK）
+      base.merge(speaker_name: 'あみたろ') # 謎の人物
     when /\Agatekeeper/
-      7   # 門番（威厳ある男性）
+      base.merge(speaker_name: 'あみたろ') # 門番
     when /\Ageneral/
-      11  # 将軍（重厚な男性）
-
+      base.merge(speaker_name: 'あみたろ') # 将軍
     else
-      1   # ナレーション
+      base.merge(speaker_name: 'あみたろ') # ナレーション
     end
   end
 
-  # ※ synthesize を使いたい場合は、speak_from_hash の中で
-  #   VoicevoxClient.speak の代わりに synthesize を呼ぶ形にすればOK
   def synthesize(text, speaker)
-    # 1. audio_query
-    uri_query = URI("#{VOICEVOX_HOST}/audio_query")
-    uri_query.query = URI.encode_www_form(text: text, speaker: speaker)
+    # speaker は今のところ使わないけど、既存の呼び出しと合わせて引数だけ残しておく
 
-    res1 = Net::HTTP.post(uri_query, '')
-    raise "audio_query failed: #{res1.code} #{res1.body}" unless res1.is_a?(Net::HTTPSuccess)
+    uri = URI("#{STYLEBERT_HOST}/voice")
 
-    query_json = res1.body
+    params = {
+      text: text,
+      model_name: 'amitaro', # server_editor で試したモデル名
+      speaker_name: 'あみたろ', # docs の speaker_name と同じ
+      style: 'Neutral',
+      language: 'JP',
+      auto_split: true,
+      split_interval: 0.5
+      # 必要なら style_weight や length もここに追加できる
+    }
 
-    # 2. synthesis
-    uri_synth = URI("#{VOICEVOX_HOST}/synthesis")
-    uri_synth.query = URI.encode_www_form(speaker: speaker)
+    uri.query = URI.encode_www_form(params)
 
-    res2 = Net::HTTP.post(uri_synth, query_json, 'Content-Type' => 'application/json')
-    raise "synthesis failed: #{res2.code} #{res2.body}" unless res2.is_a?(Net::HTTPSuccess)
+    res = Net::HTTP.get_response(uri)
+    raise "Style-Bert TTS failed: #{res.code} #{res.body}" unless res.is_a?(Net::HTTPSuccess)
 
-    res2.body # WAV バイナリ
+    res.body # audio/wav のバイナリ
   end
 end
