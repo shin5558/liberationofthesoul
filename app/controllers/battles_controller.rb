@@ -158,6 +158,9 @@ class BattlesController < ApplicationController
 
     outcome = @battle.check_battle_end!
 
+    # ★ ここで「負けていたら no_game_over を false にする」
+    update_no_game_over_flag_if_lost(@battle)
+
     if @battle.won? || @battle.lost?
       redirect_to result_battle_path(@battle)
     else
@@ -345,5 +348,27 @@ class BattlesController < ApplicationController
 
   private
 
-  # （※ assign_random_neutral_card! は Battle モデル側にあるのでここでは使わない）
+  # ★ 負けていたら、そのプレイヤーの StoryProgress.no_game_over を false に落とす
+  def update_no_game_over_flag_if_lost(battle)
+    return unless battle.lost?
+
+    player = battle.player
+    return unless player
+
+    progress =
+      StoryProgress.find_or_create_by!(player: player) do |sp|
+        sp.current_step = 'npc_talk'
+        sp.flags        = {
+          'talk_logs' => [],
+          'no_game_over' => true
+        }
+      end
+
+    flags = (progress.flags || {}).dup
+    flags['no_game_over'] = false
+
+    progress.update!(flags: flags)
+  end
 end
+
+# （※ assign_random_neutral_card! は Battle モデル側にあるのでここでは使わない）

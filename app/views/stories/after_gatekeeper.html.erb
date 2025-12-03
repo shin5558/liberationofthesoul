@@ -1,2 +1,177 @@
-妖精「堅物を倒したよ。これで魔王城に行けるね」
-妖精「魔族同士が戦っているみたい、今のうちに魔王城へ行こう」
+<!-- app/views/stories/after_gatekeeper.html.erb -->
+
+<h1>門番撃破後</h1>
+
+<section id="after-gatekeeper-script">
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    戦いが終わった後、重い槍が地面に落ちた音を最後に、周囲は再び静寂を取り戻した。<br>
+    門番はゆっくりと膝をつき、そのまま倒れ込むようにして動かなくなる。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    あなたは深く息をつきながら、倒れた門番の向こう側に目を向ける。<br>
+    そこには――魔王城へ続く巨大な門が、重々しい沈黙の中で佇んでいた。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「はぁー……。堅物を倒したよ。これで魔王城に行けるね！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    門の前に近づくと、先ほどまで閉ざされていた巨大な扉が、<br>
+    あなたたちに反応したかのようにわずかにきしみ、ゆっくりと開きはじめる。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_4">
+    黒い石畳の向こうには、かすかな灯りが揺れる闇の回廊が続いている。<br>
+    魔王城の内部が、まるであなたを招くように姿を見せていた。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_5">
+    そのとき、遠くから、不気味な怒号と金属がぶつかり合う音が響いた。<br>
+    重い空気を震わせるような戦闘音が、城の奥から伝わってくる。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_6">
+    耳を澄ますと、風に乗って断片的な声が聞こえてくる。<br>
+    「くっ……裏切り者どもめ！」「城の制御塔を奪われるな――！」<br>
+    どうやら、魔王城の内部で何者かが争っているようだ。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「魔族同士が戦っているみたい……。今のうちに魔王城へ行こう！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_7">
+    城門の奥で赤い閃光が一瞬だけ走り、天井の魔導灯がちらつく。<br>
+    あなたが一歩踏み出すと、魔王城の深く冷たい空気が、肌にまとわりついてくる。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「急ごう。今なら、誰にも気づかれずに進めるかもしれないよ、<br>
+     <strong><%= current_player&.name_kana || "あなた" %></strong>！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_8">
+    城の内側で響く激しい戦闘の音を背に、あなたたちはついに――魔王城へ足を踏み入れる。<br>
+    物語は、新たな局面へと進み出した。
+  </p>
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li>
+    <%# ★ 次のシーンへの遷移先は実際のルーティングに合わせて変更してください %>
+    <%# 例: castle_inside_story_path など %>
+    <%= link_to "魔王城内部へ進む",
+                warehouse_gate_story_path,
+                class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# ★ 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="after-gatekeeper-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="after-gatekeeper-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順（AFTER_GATEKEEPER_LINES のキーと揃える）
+    const order = [
+      "narrator_1",
+      "narrator_2",
+      "fairy_1",
+      "narrator_3",
+      "narrator_4",
+      "narrator_5",
+      "narrator_6",
+      "fairy_2",
+      "narrator_7",
+      "fairy_3",
+      "narrator_8"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document
+      .querySelectorAll("#after-gatekeeper-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("after-gatekeeper-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      audio.src =
+        "/voices/after_gatekeeper?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      const playPromise = audio.play();
+
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("after-gatekeeper-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("after-gatekeeper-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

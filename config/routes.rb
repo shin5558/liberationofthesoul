@@ -62,10 +62,14 @@ Rails.application.routes.draw do
     post :go_gatekeeper_from_princess   # 3-B：魔族には手を貸せない
     get :after_gatekeeper
     get :after_general
-    get :warehouse
+    get :warehouse_gate      # 門番ルートの倉庫
+    get :warehouse_general   # 将軍ルートの倉庫
     get :demonlord_intro
-    post :go_demonlord
     get :ending
+    # ★ 追加：真エンド3段階
+    get :ending_true_step1
+    get :ending_true_message
+    get :ending_true_after
   end
 
   # ボイス
@@ -80,4 +84,10 @@ Rails.application.routes.draw do
   get 'voices/princess_meeting', to: 'voices#princess_meeting'
   get 'voices/general_intro', to: 'voices#general_intro'
   get 'voices/gatekeeper_from_princess', to: 'voices#gatekeeper_from_princess'
+  get 'voices/after_gatekeeper', to: 'voices#after_gatekeeper'
+  get 'voices/after_general', to: 'voices#after_general'
+  get 'voices/warehouse_gate', to: 'voices#warehouse_gate'
+  get 'voices/warehouse_general', to: 'voices#warehouse_general'
+  get 'voices/demonlord_intro', to: 'voices#demonlord_intro'
+  get 'voices/ending_true', to: 'voices#ending_true'
 end

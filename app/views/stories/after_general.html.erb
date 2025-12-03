@@ -1,3 +1,161 @@
-妖精「魔将軍を倒したよ！もう直ぐ魔王の元に辿り着くね！」
-魔姫「すごいわprayername！これであとは魔王だけよ！」
-魔姫「魔王と戦う前に行くところがあるわ。ついてきて」
+<h1>将軍撃破後</h1>
+
+<section id="after-general-script">
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    激しい戦いの余韻が、まだ空気の中に残っている。<br>
+    砕けた石床と焦げた匂いの中で、魔将軍の姿はゆっくりと霧のように消えていった。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「やった……！ 魔将軍を倒したよ！<br>
+     もうすぐ、もうすぐ魔王の元に辿り着くね、<strong><%= current_player&.name_kana || "あなた" %></strong>！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    リュミエルは胸の前でぎゅっと手を握りしめ、<br>
+    勝利の喜びと、この先へ進む覚悟をその小さな体いっぱいににじませている。
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_1">
+    「すごいわ、<strong><%= current_player&.name_kana || "あなた" %></strong>。<br>
+     あなたがいてくれたから、ここまで来ることができたのよ。」
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_2">
+    「でも、このまま真っ直ぐ魔王の間へ向かうのは危険だわ。<br>
+     魔王は“混沌の源”を取り込んでいて、普通の力じゃ太刀打ちできない。」
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_3">
+    「――だから、魔王と戦う前に行くところがあるの。<br>
+     わたしがずっと隠してきた“切り札”を、あなたに託したいの。」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「えっ、切り札！？<br>
+     そんな大事なものを隠してたなんて、聞いてないよ、魔姫！」
+  </p>
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_4">
+    「言っていなかったもの。<br>
+     でも、今がその力を使うべき時よ。――ついてきて、<strong><%= current_player&.name_kana || "あなた" %></strong>。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    魔姫は踵を返し、崩れた広間の奥へと歩き出す。<br>
+    その背中は、この先の暗い道を照らす小さな灯火のように見えた。<br>
+    あなたたちは互いにうなずき合い、静かにその後を追っていく――。
+  </p>
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li>
+    <%= link_to "倉庫へ向かう（魔王との決戦の準備）",
+                warehouse_general_story_path,
+                class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="after-general-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="after-general-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順
+    const order = [
+      "narrator_1",
+      "fairy_1",
+      "narrator_2",
+      "princess_1",
+      "princess_2",
+      "princess_3",
+      "fairy_2",
+      "princess_4",
+      "narrator_3"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document
+      .querySelectorAll("#after-general-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("after-general-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      // VoicesController#after_general を想定
+      audio.src =
+        "/voices/after_general?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      const playPromise = audio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("after-general-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("after-general-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

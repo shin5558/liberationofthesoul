@@ -1,0 +1,88 @@
+<h1>倉庫イベント（門番ルート）</h1>
+
+<section id="warehouse-gate-script">
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「ここは倉庫みたいだね。あっ！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「見て、こんなのがあったよ！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+      木箱の中から取り出されたのは、淡く光る一枚のカードだった。<br>
+      属性の色を持たないそのカードは――『無属性カード』と呼ばれる特別な秘宝だ。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「これで魔王と戦おう！<br>
+     きっと、最後の一手を支えてくれるはずだよ。」
+  </p>
+
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li>
+    <%= link_to "魔王城へ進む", demonlord_intro_story_path, class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <button id="warehouse-gate-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="warehouse-gate-audio"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const order = ["fairy_1", "fairy_2", "narrator_1", "fairy_3"];
+
+  const els = {};
+  document.querySelectorAll("#warehouse-gate-script .prologue-line").forEach(el => {
+    els[el.dataset.lineId] = el;
+  });
+
+  function setActive(id) {
+    Object.values(els).forEach(el => el.classList.remove("is-speaking"));
+    if (id && els[id]) els[id].classList.add("is-speaking");
+  }
+
+  let idx = -1;
+  const audio = document.getElementById("warehouse-gate-audio");
+
+  function playNext() {
+    idx++;
+    if (idx >= order.length) return;
+
+    const id = order[idx];
+    setActive(id);
+
+    audio.src = "/voices/warehouse_gate?line=" + id + "&t=" + Date.now();
+    const p = audio.play();
+
+    if (p && p.catch)
+      p.catch(() => {
+        document.getElementById("warehouse-gate-play").style.display = "inline-block";
+      });
+  }
+
+  audio.addEventListener("ended", playNext);
+
+  document.getElementById("warehouse-gate-play").addEventListener("click", () => {
+    idx = -1;
+    playNext();
+  });
+
+  setTimeout(playNext, 400);
+});
+</script>

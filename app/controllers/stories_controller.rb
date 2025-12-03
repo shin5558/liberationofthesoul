@@ -241,29 +241,45 @@ class StoriesController < ApplicationController
 
   def after_gatekeeper
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'warehouse')
+
+    flags = @progress.flags_hash
+    flags['warehouse_route'] = 'gatekeeper' # ★ここで「門番ルート」を記録
+
+    @progress.update!(
+      current_step: 'after_gatekeeper',
+      flags: flags
+    )
   end
 
   def after_general
     session[:screen_mode] = 'story'
+
     flags = @progress.flags_hash
-    flags['defeated_general'] = true
-    @progress.update!(current_step: 'warehouse', flags: flags)
+    flags['defeated_general'] = true        # 既存フラグ
+    flags['warehouse_route']  = 'general'   # ★ここで「将軍ルート」を記録
+
+    @progress.update!(
+      current_step: 'after_general',
+      flags: flags
+    )
   end
 
-  def warehouse
+  # ✅ 門番ルート専用の倉庫画面
+  def warehouse_gate
     session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'demonlord_intro')
+    @progress.update!(current_step: 'warehouse_gate')
+    # → app/views/stories/warehouse_gate.html.erb が表示される
+  end
+
+  # ✅ 将軍ルート専用の倉庫画面
+  def warehouse_general
+    session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'warehouse_general')
+    # → app/views/stories/warehouse_general.html.erb が表示される
   end
 
   def demonlord_intro
     session[:screen_mode] = 'story'
-  end
-
-  def go_demonlord
-    session[:screen_mode] = 'story'
-    @progress.update!(current_step: 'demonlord_battle')
-    redirect_to new_battle_path(player_id: @player.id, enemy_type: 'demonlord')
   end
 
   def ending
@@ -275,10 +291,25 @@ class StoriesController < ApplicationController
       flags['no_game_over']
 
     if @true_end
-      render :ending_true
+      render :ending_true_step1
     else
       render :ending_normal
     end
+  end
+
+  def ending_true_step1
+    session[:screen_mode] = 'story'
+    # 特にフラグ更新はなし。魔王撃破〜魔姫の願い
+  end
+
+  def ending_true_message
+    session[:screen_mode] = 'story'
+    # ここで「最後の言葉」を入力する画面
+  end
+
+  def ending_true_after
+    session[:screen_mode] = 'story'
+    # 魔姫が旅立ち、エンディングテーマが流れる画面
   end
 
   # =========================
@@ -300,8 +331,18 @@ class StoriesController < ApplicationController
     @story_progress =
       StoryProgress.find_or_create_by!(player: @player) do |sp|
         sp.current_step = 'npc_talk'
-        sp.flags        = { 'talk_logs' => [] }
+        sp.flags        = {
+          'talk_logs' => [],
+          'no_game_over' => true # ★ ここで初期値 true
+        }
       end
+
+    # 既存プレイヤーで no_game_over がまだ無い人用の補正
+    flags = (@story_progress.flags || {}).dup
+    if flags['no_game_over'].nil?
+      flags['no_game_over'] = true
+      @story_progress.update!(flags: flags)
+    end
 
     # 既存コード互換用
     @progress = @story_progress

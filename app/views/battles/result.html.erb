@@ -7,7 +7,7 @@
   </p>
 <% elsif @battle.lost? %>
   <p style="color: red; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
-    💀 敗北…もう一度挑戦しよう！
+    💀 敗北…力尽きてしまった…
   </p>
 <% else %>
   <p style="font-size:1.2rem; margin-bottom:8px;">
@@ -36,14 +36,51 @@
   <% if @battle.won? %>
     <p>いい感じ！ 次はもっと高ダメージのカードや戦略も試してみましょう。</p>
   <% elsif @battle.lost? %>
-    <p>あと少し…！ 手の相性や回復タイミングを変えると勝てるかも。</p>
+    <p>ここで終わりじゃない。物語の続きは、別のかたちで待っている…。</p>
   <% end %>
 </div>
 
 <hr style="margin:20px 0;">
 
-<% if @battle.enemy.code == "goblin" %>
-  <%= link_to "物語を進める", after_goblin_story_path, class: "btn" %>
-<% else %>
-  <%= link_to "物語を進める", after_thief_story_path, class: "btn" %>
+<%# ====== ストーリーへの分岐リンク ====== %>
+<% if @battle.won? %>
+  <% case @battle.enemy.code %>
+  <% when "goblin" %>
+    <%= link_to "物語を進める（馬車の救出へ）",
+                after_goblin_story_path,
+                class: "btn" %>
+
+  <% when "thief" %>
+    <%= link_to "物語を進める（被害者を助けに行く）",
+                after_thief_story_path,
+                class: "btn" %>
+
+  <% when "gatekeeper" %>
+    <%= link_to "物語を進める（門番戦の後）",
+                after_gatekeeper_story_path,
+                class: "btn" %>
+
+  <% when "general" %>
+    <%= link_to "物語を進める（魔姫と倉庫へ）",
+                after_general_story_path,
+                class: "btn" %>
+
+  <% when "demonlord" %>
+    <%= link_to "エンディングへ進む",
+                ending_story_path,
+                class: "btn" %>
+
+  <% else %>
+    <%# 想定外の敵コードだったときの保険 %>
+    <%= link_to "物語に戻る",
+                prologue_story_path,
+                class: "btn" %>
+  <% end %>
+
+<% elsif @battle.lost? %>
+  <%# ★ 敗北時：ゲームオーバーシナリオへ %>
+  <%= link_to "ゲームオーバーの物語へ",
+              game_over_story_path,
+              class: "btn" %>
+
 <% end %>

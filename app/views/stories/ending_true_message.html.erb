@@ -1,0 +1,24 @@
+<h1>魂の残響エンディング・第二幕</h1>
+
+<p>魔姫に、最後に伝えたい言葉を心の中で、あるいは声に出して伝えてください。</p>
+
+<div class="ending-input-block">
+  <p>
+    ※フェス用：実際にマイクで言ってもらっても、<br>
+    ここにテキストとして打ち込んでもらってもOKです。
+  </p>
+  <textarea rows="3" cols="60"
+            placeholder="例）『俺（私）がいる。一緒に、終わらせよう。』"></textarea>
+</div>
+
+<div class="ending-input-actions" style="margin-top: 8px;">
+  <%# ここでは DB 保存などはせず、「ボタンを押す＝想いを届けて第三幕へ」 %>
+  <%= link_to "魔姫に想いを届ける",
+              ending_true_after_story_path,
+              class: "btn",
+              id: "ending-true-send-message" %>
+</div>
+
+<hr>
+
+<p>ボタンを押すと、魔姫からの最後の返事と、エンディングテーマが流れます。</p>

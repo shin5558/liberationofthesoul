@@ -1,5 +1,202 @@
-魔王「良くぞここまで辿りついた。」
-妖精「あなたが魔王ね。あんな事をしでかして、ただで済むと思っているの？」
-魔王「平和な世界などつまらん！くだらない馴れ合いなどもう飽きた。」
-魔王「世界を混沌の渦に堕とそう、そして、すべての生物が命を散らす世界を創るのだ！」
-妖精「あなたの創る世界なんてお断りだよ！prayername！いくよ！」
+<h1>魔王との対峙</h1>
+
+<section id="demonlord-intro-script">
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    幾つもの戦いを越え、崩れかけた回廊を抜けた先――。<br>
+    重々しい扉を押し開くと、そこには空間そのものが歪んだような広間が広がっていた。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    天井は見えないほど高く、黒い靄がゆっくりと渦を巻いている。<br>
+    足元の石畳には溶けかけた魔法陣の痕跡がいくつも刻まれ、ここがこの世界の行く末を決める最後の場所であることを静かに主張していた。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    広間の奥、砕けた玉座の上に、ひとつの影が腰掛けている。<br>
+    闇よりもなお深いマントをまとい、こちらを見下ろす瞳だけが、不気味な光を宿していた。
+  </p>
+
+  <p class="prologue-line is-demonlord"
+     data-line-id="demonlord_1">
+    「――良くぞここまで辿りついた。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_4">
+    低く響くその声は、嘲笑とも賞賛ともつかない。<br>
+    広間の空気そのものが震えるような響きに、背筋をなぞる寒気が走る。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「あなたが魔王ね。<br>
+     王国を襲って、人を傷つけて、街を燃やして……そんなことをしでかして、ただで済むと思っているの？」
+  </p>
+
+  <p class="prologue-line is-demonlord"
+     data-line-id="demonlord_2">
+    「平和な世界など、つまらん。」<br>
+    「くだらない馴れ合い、ぬるい日常、弱者同士が寄り添い合う偽りの安寧……そんなものには、もう飽きたのだ。」
+  </p>
+
+  <p class="prologue-line is-demonlord"
+     data-line-id="demonlord_3">
+    「世界を――混沌の渦に堕とそう。」<br>
+    「憎しみと欲望だけが支配する、血と炎の世界を。そして、すべての生物が互いの喉笛を噛みちぎりながら命を散らす……それこそが、真に“美しい世界”だ！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「……ふざけないで。」<br>
+    「そんな世界、誰も望んでないよ。泣きながら、それでも明日を信じて生きてる人たちを、あなたは全部踏みにじったんだ。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_5">
+    リュミエルは小さな拳をぎゅっと握りしめ、視線を逸らさない。<br>
+    震えているのは恐怖か、それとも怒りか――それでも、その瞳には確かな意志が宿っていた。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「ねぇ、<strong><%= current_player&.name_kana || "あなた" %></strong>。」<br>
+    「あなたがここまで来たのは、誰かを守りたいって思ったからでしょ？ 一緒に笑った日々とか、帰りを待ってくれてる誰かとか……そういうのを、“つまらない”なんて言わせないために、ここまで来たんだよね。」
+  </p>
+
+  <p class="prologue-line is-demonlord"
+     data-line-id="demonlord_4">
+    「滑稽だな。」<br>
+    「守りたいものだの、想いだの、絆だの……旅の中でそれがいかに脆いか、嫌というほど見てきたはずだろう。」<br>
+    「それでもなお立ち向かうと言うのなら――ここで、その意地ごと叩き折ってやろう。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_6">
+    魔王が片手を掲げると、その掌に黒い魔力の渦がゆっくりと集まり始める。<br>
+    広間の空気が一気に張り詰め、足元の魔法陣が淡く光を帯びた。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_4">
+    「あなたの創る世界なんて、お断りだよ！」<br>
+    「<strong><%= current_player&.name_kana || "あなた" %></strong>！ いくよ！！」<br>
+    「ここで終わらせよう。あなたが信じてきた“明日”のために――！」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_7">
+    広間に響く魔王の咆哮と、妖精の叫び。<br>
+    光と闇、二つの力がぶつかり合うように空気が震え、最後の戦いの幕がゆっくりと上がっていく――。
+  </p>
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li>
+<%= link_to "魔王との戦闘に入る",
+            new_battle_path(player_id: @player.id, enemy_type: "demonlord"),
+            class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <button id="demonlord-intro-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="demonlord-intro-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順
+    const order = [
+      "narrator_1",
+      "narrator_2",
+      "narrator_3",
+      "demonlord_1",
+      "narrator_4",
+      "fairy_1",
+      "demonlord_2",
+      "demonlord_3",
+      "fairy_2",
+      "narrator_5",
+      "fairy_3",
+      "demonlord_4",
+      "narrator_6",
+      "fairy_4",
+      "narrator_7"
+    ];
+
+    // DOM 要素を保持
+    const lineEls = {};
+    document
+      .querySelectorAll("#demonlord-intro-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        lineEls[lineId].classList.add("is-speaking", "is-active");
+        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("demonlord-intro-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      // VoicesController#demonlord_intro を想定
+      audio.src =
+        "/voices/demonlord_intro?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      const playPromise = audio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn("auto play error:", err);
+          const btn = document.getElementById("demonlord-intro-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("demonlord-intro-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

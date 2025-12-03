@@ -1,0 +1,194 @@
+<h1>魂の残響エンディング・第三幕</h1>
+
+<section id="ending-true-step3-script">
+  <!-- 魔姫、旅立ち -->
+
+  <p class="prologue-line is-princess"
+     data-line-id="princess_5">
+    「……ありがとう。<br>
+     その言葉、ちゃんと届いたわ。<br>
+     星風が、きっと、いつまでも覚えていてくれる。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_5">
+    魔姫の体は、光の粒となって、ゆっくりと空へ昇っていく。<br>
+    銀の夜明け前の空に、その光は、ひと筋の軌跡を描きながら溶けていった。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_4">
+    「やだよ……そんなの……。<br>
+     一緒に終わらせようって……三人で笑って帰ろうって、そう言ったのに……。<br>
+     魔姫の、ばか……。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_6">
+    リュミエルの大粒の涙が床に落ち、静かな音を立てる。<br>
+    それでも世界は、何事もなかったかのように、ゆっくりと夜明けへと向かっていく。
+  </p>
+
+  <!-- 愛の残響の説明 -->
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_7">
+    失われたものは、二度と元には戻らない。<br>
+    けれど――<br>
+    あなたと魔姫が交わした言葉は、この世界のどこかに、静かに残響し続けるだろう。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_5">
+    「ねぇ、<%= current_player&.name_kana || "あなた" %>。<br>
+     これからも、きっと苦しいことはいっぱいあるよ。<br>
+     それでもさ……今日ここで見たものを、忘れないでいてくれる？」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_8">
+    あなたが小さく頷くと、リュミエルは、涙で濡れた目元を指でこすり、<br>
+    それでも前を向こうと、精一杯の笑顔を浮かべた。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_6">
+    「行こう。<br>
+     魔姫が守りたかった世界を、わたしたちもちゃんと歩いていこう。」 
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_9">
+    夜明け前の空は、星々の光と、消えゆく光の残り香に満たされている。<br>
+    あなたの胸の奥には、確かに、ひとつの物語が刻まれていた。<br>
+    それは、消えることのない――愛の残響だった。
+  </p>
+</section>
+
+<hr>
+
+<p>エンディングテーマ曲「星風のささやき（仮）」が流れます。</p>
+
+<div style="margin-top: 16px;">
+  <%# ボイス用の再生ボタン %>
+  <button id="ending-true-step3-voice-play" class="btn" style="display:none;">
+    ▶ エンディングボイスが再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="ending-true-step3-audio"></audio>
+
+<%# エンディングBGM %>
+<audio id="ending-bgm" loop></audio>
+
+<div style="margin-top: 8px;">
+  <button id="ending-bgm-play" class="btn" style="display:none;">
+    ▶ エンディングテーマが流れないときはこちらをクリック
+  </button>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const bgm    = document.getElementById("ending-bgm");
+    const bgmBtn = document.getElementById("ending-bgm-play");
+
+    // ==== BGM 設定（音量＋ソース） ====
+    if (bgm) {
+      bgm.volume = 0.3;  // ★ BGM は控えめ
+      bgm.src    = "<%= asset_path('ending_theme.mp3') %>";
+
+      const bgmPromise = bgm.play();
+      if (bgmPromise && bgmPromise.catch) {
+        bgmPromise.catch(function () {
+          if (bgmBtn) bgmBtn.style.display = "inline-block";
+        });
+      }
+    }
+
+    if (bgmBtn) {
+      bgmBtn.addEventListener("click", function () {
+        bgmBtn.style.display = "none";
+        bgm.play();
+      });
+    }
+
+    // ===== ボイス再生 =====
+    const order = [
+      "princess_5",
+      "narrator_5",
+      "fairy_4",
+      "narrator_6",
+      "narrator_7",
+      "fairy_5",
+      "narrator_8",
+      "fairy_6",
+      "narrator_9"
+    ];
+
+    const lineEls = {};
+    document
+      .querySelectorAll("#ending-true-step3-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("ending-true-step3-audio");
+    if (audio) {
+      audio.volume = 1.0;  // ★ セリフはしっかり前に出す
+    }
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      audio.src =
+        "/voices/ending_true?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      const playPromise = audio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
+          const btn = document.getElementById("ending-true-step3-voice-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const vbtn = document.getElementById("ending-true-step3-voice-play");
+    if (vbtn) {
+      vbtn.addEventListener("click", function () {
+        vbtn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

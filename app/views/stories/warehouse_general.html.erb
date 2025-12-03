@@ -1,0 +1,83 @@
+<h1>倉庫イベント（将軍ルート）</h1>
+
+<section id="warehouse-general-script">
+
+  <p class="prologue-line is-princess" data-line-id="princess_1">
+    「ここに秘密兵器を隠しておいたの。これよ。」
+  </p>
+
+  <p class="prologue-line is-narrator" data-line-id="narrator_1">
+    薄暗い倉庫の片隅で、古びた木箱の中に淡く光るカードが一枚だけ収められていた。<br>
+    属性に縛られない特別な力を宿した――『無属性カード』だった。
+  </p>
+
+  <p class="prologue-line is-fairy" data-line-id="fairy_1">
+    「これはすごいね……。<br>
+     こんなに強い力を、ここまで隠しておくなんてさすが魔姫だよ。」
+  </p>
+
+  <p class="prologue-line is-princess" data-line-id="princess_2">
+    「これで魔王と戦えるはずよ。<br>
+     わたしはみんなが心配だから、向こうと合流するわ。――頑張ってね！」
+  </p>
+
+</section>
+
+<hr>
+
+<p>物語を先へ進めましょう。</p>
+<ul>
+  <li><%= link_to "魔王城へ進む", demonlord_intro_story_path, class: "btn" %></li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <button id="warehouse-general-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="warehouse-general-audio"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const order = ["princess_1", "narrator_1", "fairy_1", "princess_2"];
+
+  const els = {};
+  document.querySelectorAll("#warehouse-general-script .prologue-line").forEach(el => {
+    els[el.dataset.lineId] = el;
+  });
+
+  function setActive(id) {
+    Object.values(els).forEach(el => el.classList.remove("is-speaking"));
+    if (id && els[id]) els[id].classList.add("is-speaking");
+  }
+
+  let idx = -1;
+  const audio = document.getElementById("warehouse-general-audio");
+
+  function playNext() {
+    idx++;
+    if (idx >= order.length) return;
+
+    const id = order[idx];
+    setActive(id);
+
+    audio.src = "/voices/warehouse_general?line=" + id + "&t=" + Date.now();
+
+    const p = audio.play();
+    if (p && p.catch)
+      p.catch(() => {
+        document.getElementById("warehouse-general-play").style.display = "inline-block";
+      });
+  }
+
+  audio.addEventListener("ended", playNext);
+
+  document.getElementById("warehouse-general-play").addEventListener("click", () => {
+    idx = -1;
+    playNext();
+  });
+
+  setTimeout(playNext, 400);
+});
+</script>
