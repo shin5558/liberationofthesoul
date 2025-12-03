@@ -1,6 +1,170 @@
-妖精「やったねprayername、ついに魔王を倒したよ！」
-妖精「これで世界は救われたよ！」
-妖精「ありがとうprayername！」
+<!-- app/views/stories/ending_normal.html.erb -->
 
-魔王は倒され世界の平和は保たれた
-今回の騒動が生んだであろう軋轢は今後どうなるかわからない
+<h1>ノーマルエンディング</h1>
+
+<section id="ending-normal-script">
+
+  <!-- 魔王撃破 ～ 静寂 -->
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_1">
+    玉座の間に、鋭い光が走った。<br>
+    最後の一撃が魔王の胸を貫き、巨体は崩れ落ちる。<br>
+    渦巻いていた闇の霧はゆっくりと消え、世界に久しくなかった静寂が広がった。
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_1">
+    「……やった……ついに……！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_2">
+    「やったね、<%= current_player&.name_kana || "あなた" %>！<br>
+     ついに魔王を倒したよ！」
+  </p>
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_3">
+    「これで世界は救われたよ！<br>
+     本当に……ありがとう、<%= current_player&.name_kana || "あなた" %>！」
+  </p>
+
+  <!-- 世界の傷跡・余韻 -->
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_2">
+    闇が晴れた空は、どこかぎこちないほどに明るかった。<br>
+    だが同時に、魔王がもたらした混乱が、世界のあちこちに深い影を落としているのも感じられた。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_3">
+    救われた世界は、決して“元通り”ではない。<br>
+    王都と辺境、魔族と人間、そして各地に残された傷跡。<br>
+    それらの全てが、これからの時代に重くのしかかっていく。
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_4">
+    それでも――<br>
+    今日あなたが成し遂げたことは、確かに多くの命を救い、<br>
+    未来へ続く道を開いたのだ。
+  </p>
+
+  <!-- 帰還・締め -->
+
+  <p class="prologue-line is-fairy"
+     data-line-id="fairy_4">
+    「帰ろう、<%= current_player&.name_kana || "あなた" %>。<br>
+     これから先、どんな世界になっても……<br>
+     わたしたちの旅は、ここでいったんおしまいだよ。」
+  </p>
+
+  <p class="prologue-line is-narrator"
+     data-line-id="narrator_5">
+    こうして、物語は静かに幕を閉じた。<br>
+    だが、今回の騒動が生んだであろう軋轢と、揺れ動く世界の行く末は、まだ誰にもわからない。<br>
+    ――それでも、希望は、必ずどこかで息づいているはずだ。
+  </p>
+</section>
+
+<hr>
+
+<p>エンディングはここまでです。</p>
+<ul>
+  <li>
+    <%= link_to "タイトルに戻る", root_path, class: "btn" %>
+  </li>
+</ul>
+
+<div style="margin-top: 16px;">
+  <%# 自動再生がブロックされたときだけ表示するボタン %>
+  <button id="ending-normal-play" class="btn" style="display:none;">
+    ▶ エンディングボイスが再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="ending-normal-audio"></audio>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ★ 再生順
+    const order = [
+      "narrator_1",
+      "fairy_1",
+      "fairy_2",
+      "fairy_3",
+      "narrator_2",
+      "narrator_3",
+      "narrator_4",
+      "fairy_4",
+      "narrator_5"
+    ];
+
+    const lineEls = {};
+    document
+      .querySelectorAll("#ending-normal-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
+
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    let currentIndex = -1;
+    const audio = document.getElementById("ending-normal-audio");
+
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      // ★ ノーマルエンド用ボイスエンドポイント（後で VoicesController 側に実装）
+      audio.src =
+        "/voices/ending_normal?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      const playPromise = audio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
+          const btn = document.getElementById("ending-normal-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("ending-normal-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // 自動再生トライ
+    setTimeout(function () {
+      currentIndex = -1;
+      playNext();
+    }, 500);
+  });
+</script>

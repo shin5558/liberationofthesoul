@@ -70,6 +70,7 @@ Rails.application.routes.draw do
     get :ending_true_step1
     get :ending_true_message
     get :ending_true_after
+    get :game_over
   end
 
   # ボイス
@@ -89,5 +90,7 @@ Rails.application.routes.draw do
   get 'voices/warehouse_gate', to: 'voices#warehouse_gate'
   get 'voices/warehouse_general', to: 'voices#warehouse_general'
   get 'voices/demonlord_intro', to: 'voices#demonlord_intro'
+  get 'voices/ending_bad', to: 'voices#ending_bad'
+  get 'voices/ending_normal', to: 'voices#ending_normal'
   get 'voices/ending_true', to: 'voices#ending_true'
 end

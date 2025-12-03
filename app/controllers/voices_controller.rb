@@ -722,6 +722,62 @@ class VoicesController < ApplicationController
     }
   }.freeze
 
+  ENDING_BAD_LINES = {
+    'narrator_1' => lambda { |name|
+      '世界は、静かに、しかし確実に混沌の渦に呑まれていった。'
+    },
+    'narrator_2' => lambda { |name|
+      '理性は焼き切れ、魔王以外の生物は次々と狂気に堕ちていく。' \
+      '飢えた獣のように互いの血を求め、争いは際限なく広がっていった。'
+    },
+    'narrator_3' => lambda { |name|
+      'ただ相手を喰らい、壊し、殺す。かつて人と呼ばれていた者たちは、' \
+      '自分が何であったのかすら思い出せない。'
+    },
+    'narrator_4' => lambda { |name|
+      '滅びゆく世界を見下ろしながら、魔王は静かに笑う。' \
+      '戦いがある限り、この世界は生きている――そう信じているかのように。'
+    },
+    'narrator_5' => lambda { |name|
+      '終わりではない。これは――魔王が望んだ、永遠の戯れの始まりにすぎない。'
+    }
+  }.freeze
+
+  ENDING_NORMAL_LINES = {
+    'narrator_1' => lambda { |name|
+      '玉座の間に、鋭い光が走った。最後の一撃が魔王の胸を貫き、巨体は崩れ落ちる。' \
+      '渦巻いていた闇の霧はゆっくりと消え、世界に久しくなかった静寂が広がった。'
+    },
+    'fairy_1' => lambda { |name|
+      '……やった……ついに……！'
+    },
+    'fairy_2' => lambda { |name|
+      "やったね#{name}、ついに魔王を倒したよ！"
+    },
+    'fairy_3' => lambda { |name|
+      "これで世界は救われたよ！本当に……ありがとう、#{name}！"
+    },
+    'narrator_2' => lambda { |name|
+      '闇が晴れた空は、どこかぎこちないほどに明るかった。' \
+      'だが同時に、魔王がもたらした混乱が、世界のあちこちに深い影を落としているのも感じられた。'
+    },
+    'narrator_3' => lambda { |name|
+      '救われた世界は、決して元通りではない。王都と辺境、魔族と人間、' \
+      'そして各地に残された傷跡。それらの全てが、これからの時代に重くのしかかっていく。'
+    },
+    'narrator_4' => lambda { |name|
+      'それでも――今日あなたが成し遂げたことは、確かに多くの命を救い、未来へ続く道を開いたのだ。'
+    },
+    'fairy_4' => lambda { |name|
+      "帰ろう、#{name}。これから先、どんな世界になっても……" \
+      'わたしたちの旅は、ここでいったんおしまいだよ。'
+    },
+    'narrator_5' => lambda { |name|
+      'こうして、物語は静かに幕を閉じた。だが、今回の騒動が生んだであろう軋轢と、' \
+      '揺れ動く世界の行く末は、まだ誰にもわからない。――それでも、希望は、必ずどこかで息づいているはずだ。'
+    }
+  }.freeze
+
   ENDING_TRUE_LINES = {
     'narrator_1' => lambda { |name|
       '魔王がゆっくりと崩れ落ち、玉座の間に重たい静寂が訪れる。' \
@@ -874,6 +930,14 @@ class VoicesController < ApplicationController
 
   def demonlord_intro
     speak_from_hash(DEMONLORD_INTRO_LINES)
+  end
+
+  def ending_bad
+    speak_from_hash(ENDING_BAD_LINES)
+  end
+
+  def ending_normal
+    speak_from_hash(ENDING_NORMAL_LINES)
   end
 
   def ending_true

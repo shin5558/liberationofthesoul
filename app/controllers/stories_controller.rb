@@ -297,6 +297,15 @@ class StoriesController < ApplicationController
     end
   end
 
+  def game_over
+    session[:screen_mode] = 'story'
+    # 必要なら進行度を残しておく
+    @progress.update!(current_step: 'game_over') if @progress
+
+    # ビュー app/views/stories/ending_bad.html.erb を表示
+    render :ending_bad
+  end
+
   def ending_true_step1
     session[:screen_mode] = 'story'
     # 特にフラグ更新はなし。魔王撃破〜魔姫の願い
