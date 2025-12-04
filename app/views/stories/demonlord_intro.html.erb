@@ -105,6 +105,7 @@
 </ul>
 
 <div style="margin-top: 16px;">
+  <%# 魔王イントロ ボイス用の再生ボタン %>
   <button id="demonlord-intro-play" class="btn" style="display:none;">
     ▶ 音声が再生されないときはこちらをクリック
   </button>
@@ -112,9 +113,41 @@
 
 <audio id="demonlord-intro-audio"></audio>
 
+<%# 魔王戦 用BGM %>
+<audio id="demonlord-bgm" loop></audio>
+
+<div style="margin-top: 8px;">
+  <button id="demonlord-bgm-play" class="btn" style="display:none;">
+    ▶ 魔王戦BGMが流れないときはこちらをクリック
+  </button>
+</div>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順
+    // ====== 魔王イントロ BGM 設定 ======
+    const bgm    = document.getElementById("demonlord-bgm");
+    const bgmBtn = document.getElementById("demonlord-bgm-play");
+
+    if (bgm) {
+      bgm.volume = 0.3;  // ★ BGM は控えめ（セリフを前へ）
+      bgm.src    = "<%= asset_path('demonlord-bgm.mp3') %>"; // ←ここを修正済み！
+
+      const bgmPromise = bgm.play();
+      if (bgmPromise && bgmPromise.catch) {
+        bgmPromise.catch(function () {
+          if (bgmBtn) bgmBtn.style.display = "inline-block";
+        });
+      }
+    }
+
+    if (bgmBtn) {
+      bgmBtn.addEventListener("click", function () {
+        bgmBtn.style.display = "none";
+        bgm.play();
+      });
+    }
+
+    // ====== 魔王イントロ ボイス再生 ======
     const order = [
       "narrator_1",
       "narrator_2",
@@ -133,13 +166,12 @@
       "narrator_7"
     ];
 
-    // DOM 要素を保持
     const lineEls = {};
     document
       .querySelectorAll("#demonlord-intro-script .prologue-line")
       .forEach(function (el) {
         const id = el.dataset.lineId;
-        lineEls[id] = el;
+        if (id) lineEls[id] = el;
       });
 
     function setActive(lineId) {
@@ -147,13 +179,17 @@
         el.classList.remove("is-speaking", "is-active");
       });
       if (lineId && lineEls[lineId]) {
-        lineEls[lineId].classList.add("is-speaking", "is-active");
-        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
     const audio = document.getElementById("demonlord-intro-audio");
+    if (audio) {
+      audio.volume = 1.0; // ★ セリフはしっかり前に出す
+    }
 
     function playNext() {
       currentIndex += 1;
@@ -165,7 +201,6 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      // VoicesController#demonlord_intro を想定
       audio.src =
         "/voices/demonlord_intro?line=" +
         encodeURIComponent(lineId) +
@@ -174,8 +209,7 @@
 
       const playPromise = audio.play();
       if (playPromise && playPromise.catch) {
-        playPromise.catch(function (err) {
-          console.warn("auto play error:", err);
+        playPromise.catch(function () {
           const btn = document.getElementById("demonlord-intro-play");
           if (btn) btn.style.display = "inline-block";
         });
@@ -184,16 +218,16 @@
 
     audio.addEventListener("ended", playNext);
 
-    const btn = document.getElementById("demonlord-intro-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
+    const vbtn = document.getElementById("demonlord-intro-play");
+    if (vbtn) {
+      vbtn.addEventListener("click", function () {
+        vbtn.style.display = "none";
         currentIndex = -1;
         playNext();
       });
     }
 
-    // ページ表示後に自動再生を試みる
+    // ページ表示後に自動再生
     setTimeout(function () {
       currentIndex = -1;
       playNext();
