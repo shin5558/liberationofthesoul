@@ -51,8 +51,9 @@
 <audio id="scene-audio"></audio>
 
 <script>
-  (function() {
-    const lines = [
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順（元の lines 配列と同じ順）
+    const order = [
       "narrator_1",
       "fairy_1",
       "narrator_2",
@@ -62,28 +63,95 @@
       "fairy_3"
     ];
 
-    const audioEl = document.getElementById("scene-audio");
+    // DOM 要素を保持（.js-line を全部対象にする）
+    const lineEls = {};
+    document.querySelectorAll(".js-line").forEach(function (el) {
+      const id = el.dataset.lineId;
+      if (id) lineEls[id] = el;
+    });
 
-    function highlight(lineId) {
-      document.querySelectorAll(".js-line").forEach(el => {
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
         el.classList.remove("is-speaking");
       });
-      const target = document.querySelector(`.js-line[data-line-id="${lineId}"]`);
-      if (target) target.classList.add("is-speaking");
+      if (lineId && lineEls[lineId]) {
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
 
-    async function playLine(index) {
-      if (index >= lines.length) return;
-      const id = lines[index];
-      highlight(id);
+    let currentIndex = -1;
+    const audio = new Audio();
 
-      audioEl.src = `/voices/branch1?line=${encodeURIComponent(id)}`;
-      audioEl.play().catch(() => {});
-      audioEl.onended = () => playLine(index + 1);
+    // ★ ここで音声を事前取得してキャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url = "/voices/branch1?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      return fetch(url)
+        .then(function (res) { return res.arrayBuffer(); })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      playLine(0);
+    function playNext() {
+      currentIndex += 1;
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      const cached = voiceCache[lineId];
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("branch1-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // 万が一プリロードが間に合ってない時の保険
+        const url = "/voices/branch1?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
+          const btn = document.getElementById("branch1-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("branch1-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
+      currentIndex = -1;
+      playNext();
     });
-  })();
+
+    // 2行目以降はバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
+  });
 </script>

@@ -39,45 +39,115 @@
 <audio id="warehouse-general-audio"></audio>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const order = ["princess_1", "narrator_1", "fairy_1", "princess_2"];
+  document.addEventListener("DOMContentLoaded", function () {
+    // 再生順
+    const order = ["princess_1", "narrator_1", "fairy_1", "princess_2"];
 
-  const els = {};
-  document.querySelectorAll("#warehouse-general-script .prologue-line").forEach(el => {
-    els[el.dataset.lineId] = el;
-  });
-
-  function setActive(id) {
-    Object.values(els).forEach(el => el.classList.remove("is-speaking"));
-    if (id && els[id]) els[id].classList.add("is-speaking");
-  }
-
-  let idx = -1;
-  const audio = document.getElementById("warehouse-general-audio");
-
-  function playNext() {
-    idx++;
-    if (idx >= order.length) return;
-
-    const id = order[idx];
-    setActive(id);
-
-    audio.src = "/voices/warehouse_general?line=" + id + "&t=" + Date.now();
-
-    const p = audio.play();
-    if (p && p.catch)
-      p.catch(() => {
-        document.getElementById("warehouse-general-play").style.display = "inline-block";
+    // DOM 要素を保持
+    const lineEls = {};
+    document
+      .querySelectorAll("#warehouse-general-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
       });
-  }
 
-  audio.addEventListener("ended", playNext);
+    function setActive(lineId) {
+      Object.values(lineEls).forEach(function (el) {
+        el.classList.remove("is-speaking", "is-active");
+      });
+      if (lineId && lineEls[lineId]) {
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
 
-  document.getElementById("warehouse-general-play").addEventListener("click", () => {
-    idx = -1;
-    playNext();
+    let currentIndex = -1;
+    const audio = new Audio();
+
+    // ★ 音声キャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url =
+        "/voices/warehouse_general?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      return fetch(url)
+        .then(function (res) {
+          return res.arrayBuffer();
+        })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
+    }
+
+    function playNext() {
+      currentIndex += 1;
+
+      if (currentIndex >= order.length) {
+        setActive(null);
+        return;
+      }
+
+      const lineId = order[currentIndex];
+      setActive(lineId);
+
+      const cached = voiceCache[lineId];
+
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("warehouse-general-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // プリロードが間に合わなかったときの保険
+        const url =
+          "/voices/warehouse_general?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
+          const btn = document.getElementById("warehouse-general-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      }
+    }
+
+    // 1セリフ終わるごとに次へ
+    audio.addEventListener("ended", playNext);
+
+    const btn = document.getElementById("warehouse-general-play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.display = "none";
+        currentIndex = -1;
+        playNext();
+      });
+    }
+
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
+      currentIndex = -1;
+      playNext();
+    });
+
+    // 2行目以降はバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
-
-  setTimeout(playNext, 400);
-});
 </script>

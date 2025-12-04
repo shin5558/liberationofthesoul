@@ -1004,7 +1004,7 @@ class VoicesController < ApplicationController
       style: 'Neutral',
       language: 'JP',
       auto_split: true,
-      split_interval: 0.5
+      split_interval: 0.1
       # 必要なら style_weight や length もここに追加できる
     }
 

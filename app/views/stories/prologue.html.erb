@@ -59,15 +59,31 @@
         el.classList.remove("is-speaking");
       });
       if (lineId && lineEls[lineId]) {
-        el = lineEls[lineId];
+        const el = lineEls[lineId];
         el.classList.add("is-speaking");
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
-    // ★ 匿名の Audio オブジェクトを使う（他の画面と同じ方式に戻す）
     const audio = new Audio();
+
+    // ★ ここで音声を事前取得してキャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      return fetch(url)
+        .then(function (res) { return res.arrayBuffer(); })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
+    }
 
     function playNext() {
       currentIndex += 1;
@@ -79,13 +95,20 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      audio.src = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
-      const playPromise = audio.play();
-
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function (err) {
-          console.warn("auto play error:", err);
-          // 自動再生がブロックされたらボタンを見せる
+      const cached = voiceCache[lineId];
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("prologue-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // 万が一プリロードが間に合ってない時の保険
+        const url = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
           const btn = document.getElementById("prologue-play");
           if (btn) btn.style.display = "inline-block";
         });
@@ -94,7 +117,6 @@
 
     audio.addEventListener("ended", playNext);
 
-    // ボタンは「バックアップ用」
     const btn = document.getElementById("prologue-play");
     if (btn) {
       btn.addEventListener("click", function () {
@@ -104,10 +126,16 @@
       });
     }
 
-    // ページ表示後に自動で再生開始を試みる
-    setTimeout(function () {
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
       currentIndex = -1;
       playNext();
-    }, 500);
+    });
+
+    // 2行目以降はバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
 </script>

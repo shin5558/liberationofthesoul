@@ -98,7 +98,7 @@
       .querySelectorAll("#after-general-script .prologue-line")
       .forEach(function (el) {
         const id = el.dataset.lineId;
-        lineEls[id] = el;
+        if (id) lineEls[id] = el;
       });
 
     function setActive(lineId) {
@@ -106,16 +106,42 @@
         el.classList.remove("is-speaking", "is-active");
       });
       if (lineId && lineEls[lineId]) {
-        lineEls[lineId].classList.add("is-speaking", "is-active");
-        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
-    const audio = document.getElementById("after-general-audio");
+    const audio = new Audio();
+
+    // ★ 音声キャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url =
+        "/voices/after_general?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      return fetch(url)
+        .then(function (res) {
+          return res.arrayBuffer();
+        })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
+    }
 
     function playNext() {
       currentIndex += 1;
+
       if (currentIndex >= order.length) {
         setActive(null);
         return;
@@ -124,23 +150,32 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      // VoicesController#after_general を想定
-      audio.src =
-        "/voices/after_general?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
+      const cached = voiceCache[lineId];
 
-      const playPromise = audio.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function (err) {
-          console.warn("auto play error:", err);
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("after-general-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // プリロードが間に合わなかったときの保険
+        const url =
+          "/voices/after_general?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
           const btn = document.getElementById("after-general-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
+    // 1セリフ終わるたびに次へ
     audio.addEventListener("ended", playNext);
 
     const btn = document.getElementById("after-general-play");
@@ -152,10 +187,16 @@
       });
     }
 
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
       currentIndex = -1;
       playNext();
-    }, 500);
+    });
+
+    // 2行目以降はバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
 </script>

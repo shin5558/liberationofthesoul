@@ -124,13 +124,13 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // ====== 魔王イントロ BGM 設定 ======
+    // ====== 魔王イントロ BGM 設定（ここは元のまま） ======
     const bgm    = document.getElementById("demonlord-bgm");
     const bgmBtn = document.getElementById("demonlord-bgm-play");
 
     if (bgm) {
       bgm.volume = 0.3;  // ★ BGM は控えめ（セリフを前へ）
-      bgm.src    = "<%= asset_path('demonlord-bgm.mp3') %>"; // ←ここを修正済み！
+      bgm.src    = "<%= asset_path('demonlord-bgm.mp3') %>";
 
       const bgmPromise = bgm.play();
       if (bgmPromise && bgmPromise.catch) {
@@ -143,11 +143,11 @@
     if (bgmBtn) {
       bgmBtn.addEventListener("click", function () {
         bgmBtn.style.display = "none";
-        bgm.play();
+        if (bgm) bgm.play();
       });
     }
 
-    // ====== 魔王イントロ ボイス再生 ======
+    // ====== 魔王イントロ ボイス再生（プリロード＋キャッシュ版） ======
     const order = [
       "narrator_1",
       "narrator_2",
@@ -186,9 +186,31 @@
     }
 
     let currentIndex = -1;
-    const audio = document.getElementById("demonlord-intro-audio");
-    if (audio) {
-      audio.volume = 1.0; // ★ セリフはしっかり前に出す
+    const audio = new Audio();
+    audio.volume = 1.0; // ★ セリフはしっかり前に出す
+
+    // ★ 音声キャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url =
+        "/voices/demonlord_intro?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      return fetch(url)
+        .then(function (res) {
+          return res.arrayBuffer();
+        })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
     }
 
     function playNext() {
@@ -201,21 +223,30 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      audio.src =
-        "/voices/demonlord_intro?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
+      const cached = voiceCache[lineId];
 
-      const playPromise = audio.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function () {
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function () {
+          const btn = document.getElementById("demonlord-intro-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // プリロードが間に合わなかったときの保険
+        const url =
+          "/voices/demonlord_intro?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+        audio.src = url;
+        audio.play().catch(function () {
           const btn = document.getElementById("demonlord-intro-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
+    // セリフごとに次へ
     audio.addEventListener("ended", playNext);
 
     const vbtn = document.getElementById("demonlord-intro-play");
@@ -227,10 +258,16 @@
       });
     }
 
-    // ページ表示後に自動再生
-    setTimeout(function () {
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
       currentIndex = -1;
       playNext();
-    }, 500);
+    });
+
+    // 2行目以降はバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
 </script>

@@ -112,7 +112,7 @@
       });
     }
 
-    // ===== ボイス再生 =====
+    // ===== ボイス再生（プリロード＋キャッシュ版） =====
     const order = [
       "princess_5",
       "narrator_5",
@@ -145,9 +145,28 @@
     }
 
     let currentIndex = -1;
-    const audio = document.getElementById("ending-true-step3-audio");
-    if (audio) {
-      audio.volume = 1.0;  // ★ セリフはしっかり前に出す
+    const audio = new Audio();
+    audio.volume = 1.0;  // ★ セリフはしっかり前に出す
+
+    // ★ 音声を事前取得してキャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url =
+        "/voices/ending_true?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      return fetch(url)
+        .then(function (res) { return res.arrayBuffer(); })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
     }
 
     function playNext() {
@@ -160,15 +179,24 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      audio.src =
-        "/voices/ending_true?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      const playPromise = audio.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function () {
+      const cached = voiceCache[lineId];
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("ending-true-step3-voice-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // 万が一プリロードが間に合ってない時の保険
+        const url =
+          "/voices/ending_true?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
           const btn = document.getElementById("ending-true-step3-voice-play");
           if (btn) btn.style.display = "inline-block";
         });
@@ -186,9 +214,15 @@
       });
     }
 
-    setTimeout(function () {
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
       currentIndex = -1;
       playNext();
-    }, 500);
+    });
+
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
 </script>

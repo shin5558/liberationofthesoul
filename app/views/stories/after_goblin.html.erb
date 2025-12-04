@@ -96,28 +96,60 @@
       "fairy_6"
     ];
 
-    // DOM 要素を保持
+    // DOM 要素を保持（#after-goblin-script 配下の data-line-id を対象）
     const lineEls = {};
-    document.querySelectorAll("#after-goblin-script .prologue-line").forEach(function (el) {
-      const id = el.dataset.lineId;
-      lineEls[id] = el;
-    });
+    document
+      .querySelectorAll("#after-goblin-script [data-line-id]")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
 
     function setActive(lineId) {
+      // クラスをいったん全部外す
       Object.values(lineEls).forEach(function (el) {
         el.classList.remove("is-speaking", "is-active");
       });
+
+      // 対象行をハイライト＆スクロール
       if (lineId && lineEls[lineId]) {
-        lineEls[lineId].classList.add("is-speaking", "is-active");
-        lineEls[lineId].scrollIntoView({ behavior: "smooth", block: "center" });
+        const el = lineEls[lineId];
+        el.classList.add("is-speaking", "is-active");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
-    const audio = document.getElementById("after-goblin-audio");
+    const audio = new Audio();
+
+    // ★ 音声キャッシュ
+    const voiceCache = {};
+
+    function preloadVoice(lineId) {
+      // すでにキャッシュ済みなら何もしない
+      if (voiceCache[lineId]) return Promise.resolve();
+
+      const url =
+        "/voices/after_goblin?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
+      return fetch(url)
+        .then(function (res) {
+          return res.arrayBuffer();
+        })
+        .then(function (buf) {
+          const blob = new Blob([buf], { type: "audio/wav" });
+          const objectUrl = URL.createObjectURL(blob);
+          voiceCache[lineId] = objectUrl;
+        });
+    }
 
     function playNext() {
       currentIndex += 1;
+
+      // 全行再生し終わったら終了
       if (currentIndex >= order.length) {
         setActive(null);
         return;
@@ -126,20 +158,35 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      audio.src = "/voices/after_goblin?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
-      const playPromise = audio.play();
+      const cached = voiceCache[lineId];
 
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function (err) {
-          console.warn("auto play error:", err);
+      if (cached) {
+        audio.src = cached;
+        audio.play().catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("after-goblin-play");
+          if (btn) btn.style.display = "inline-block";
+        });
+      } else {
+        // プリロードが間に合わなかったときの保険
+        const url =
+          "/voices/after_goblin?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+        audio.src = url;
+        audio.play().catch(function (err) {
+          console.warn("play error (fallback):", err);
           const btn = document.getElementById("after-goblin-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
+    // 1行終わるたびに次へ
     audio.addEventListener("ended", playNext);
 
+    // 手動再生ボタン（自動再生ブロック時用）
     const btn = document.getElementById("after-goblin-play");
     if (btn) {
       btn.addEventListener("click", function () {
@@ -149,10 +196,16 @@
       });
     }
 
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
+    // ★ まず1行目だけプリロード → 終わったら再生開始
+    //   残りは裏で並行プリロードしておく
+    preloadVoice(order[0]).then(function () {
       currentIndex = -1;
       playNext();
-    }, 500);
+    });
+
+    // 2行目以降をバックグラウンドでプリロード
+    order.slice(1).forEach(function (lineId) {
+      preloadVoice(lineId);
+    });
   });
 </script>
