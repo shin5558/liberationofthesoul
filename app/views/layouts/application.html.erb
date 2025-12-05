@@ -7,27 +7,27 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
-<body>
+
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : '' %>">
-<header class="site-header">
-  <div class="site-header__inner">
-    <span class="site-header__title">Liberation of the Soul</span>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <span class="site-header__title">Liberation of the Soul</span>
 
-    <nav class="site-nav">
-      <%= link_to "タイトル", root_path, class: "site-nav__link" %>
-      <%= link_to "リセット", reset_path,
-                  class: "site-nav__link",
-                  data: { turbo_confirm: "本当に最初からにしますか？" } %>
-    </nav>
-  </div>
-</header>
+        <nav class="site-nav">
+          <%= link_to "タイトル", root_path, class: "site-nav__link" %>
+          <%= link_to "リセット", reset_path,
+                      class: "site-nav__link",
+                      data: { turbo_confirm: "本当に最初からにしますか？" } %>
+        </nav>
+      </div>
+    </header>
 
-  <main class="site-main">
-    <%= yield %>
-  </main>
+    <main class="site-main">
+      <%= yield %>
+    </main>
 
-  <footer class="site-footer">
-    © 2025 Liberation of the Soul
-  </footer>
-</body>
+    <footer class="site-footer">
+      © 2025 Liberation of the Soul
+    </footer>
+  </body>
 </html>

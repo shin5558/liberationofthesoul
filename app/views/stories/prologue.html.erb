@@ -44,15 +44,24 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "prologue";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
     // 再生順
     const order = ["narrator_1", "narrator_2", "fairy_1", "fairy_2"];
 
     // DOM 要素を保持
     const lineEls = {};
-    document.querySelectorAll("#prologue-script .prologue-line").forEach(function (el) {
-      const id = el.dataset.lineId;
-      if (id) lineEls[id] = el;
-    });
+    document
+      .querySelectorAll("#prologue-script .prologue-line")
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
 
     function setActive(lineId) {
       Object.values(lineEls).forEach(function (el) {
@@ -68,21 +77,42 @@
     let currentIndex = -1;
     const audio = new Audio();
 
-    // ★ ここで音声を事前取得してキャッシュ
-    const voiceCache = {};
-
+    // ★ 1行分をプリロードして cache に入れる
     function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
+      if (sceneCache[lineId]) {
+        // すでにプリロード済みなら何もしない
+        return Promise.resolve();
+      }
 
-      const url = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
+      const url =
+        "/voices/prologue?line=" +
+        encodeURIComponent(lineId) +
+        "&t=" +
+        Date.now();
+
       return fetch(url)
         .then(function (res) { return res.arrayBuffer(); })
         .then(function (buf) {
           const blob = new Blob([buf], { type: "audio/wav" });
           const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
+          sceneCache[lineId] = objectUrl;
+        })
+        .catch(function (err) {
+          console.warn("preload error (prologue):", lineId, err);
         });
+    }
+
+    // ★ このシーンの全行を先にプリロード（行間を詰める本体）
+    function preloadAllLines() {
+      return Promise.all(order.map(preloadVoice));
+    }
+
+    // ★ グローバルキャッシュから URL を取るヘルパー（元の形を維持）
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sc = window.voiceCache[sceneKey];
+      if (!sc) return null;
+      return sc[lineId] || null;
     }
 
     function playNext() {
@@ -95,24 +125,24 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
+      // まずはプリロード済みキャッシュを参照
+      const cached = getCachedUrl(SCENE_KEY, lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("prologue-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url = "/voices/prologue?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("prologue-play");
-          if (btn) btn.style.display = "inline-block";
-        });
+        // 万が一プリロードがまだなら、その場で取得（保険）
+        audio.src =
+          "/voices/prologue?line=" +
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
       }
+
+      audio.play().catch(function (err) {
+        console.warn("play error:", err);
+        const btn = document.getElementById("prologue-play");
+        if (btn) btn.style.display = "inline-block";
+      });
     }
 
     audio.addEventListener("ended", playNext);
@@ -126,16 +156,19 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ==== ここが一番大事 ====
+    // 1) 全行プリロード完了を待つ
+    // 2) 終わったら 1 行目から連続再生開始
+    preloadAllLines().then(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
+    }).catch(function (err) {
+      console.warn("preloadAllLines error:", err);
+      // 失敗したときは今まで通りタイマーで開始
+      setTimeout(function () {
+        currentIndex = -1;
+        playNext();
+      }, 500);
     });
   });
 </script>

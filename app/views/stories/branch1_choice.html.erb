@@ -52,7 +52,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順（元の lines 配列と同じ順）
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "branch1_choice";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // 再生順（branch1_choice の順番）
     const order = [
       "narrator_1",
       "fairy_1",
@@ -82,23 +89,20 @@
     }
 
     let currentIndex = -1;
-    const audio = new Audio();
 
-    // ★ ここで音声を事前取得してキャッシュ
-    const voiceCache = {};
+    // ★ 実際の <audio> 要素を使う
+    const audio = document.getElementById("scene-audio");
+    if (!audio) {
+      console.error("audio#scene-audio が見つかりません");
+      return;
+    }
 
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url = "/voices/branch1?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
-      return fetch(url)
-        .then(function (res) { return res.arrayBuffer(); })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバルキャッシュから URL を取るヘルパー
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
@@ -111,21 +115,24 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
+      // まずはプリロード済みキャッシュを参照
+      const cached = getCachedUrl("branch1_choice", lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("branch1-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url = "/voices/branch1?line=" + encodeURIComponent(lineId) + "&t=" + Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("branch1-play");
+        // 万が一プリロードがまだなら、その場で取得
+        audio.src =
+          "/voices/branch1?line=" +              // ★ここを branch1 に
+          encodeURIComponent(lineId) +
+          "&t=" +
+          Date.now();
+      }
+
+      const p = audio.play();
+      if (p && p.catch) {
+        p.catch(function (err) {
+          console.warn("play error:", err);
+          const btn = document.getElementById("branch1-choice-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
@@ -133,7 +140,7 @@
 
     audio.addEventListener("ended", playNext);
 
-    const btn = document.getElementById("branch1-play");
+    const btn = document.getElementById("branch1-choice-play");
     if (btn) {
       btn.addEventListener("click", function () {
         btn.style.display = "none";
@@ -142,16 +149,10 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

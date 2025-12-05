@@ -51,7 +51,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順（元の lines 配列と同じ順）
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "thief_intro";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ★ 再生順（SCENES.thief_intro.lines と同じ順）
     const order = [
       "narrator_1",
       "fairy_1",
@@ -65,20 +72,20 @@
       "narrator_4"
     ];
 
-    // DOM 要素を保持（.js-line を全部対象にする）
+    // DOM 要素を保持
     const lineEls = {};
-    document.querySelectorAll(".js-line").forEach(function (el) {
-      const id = el.dataset.lineId;
-      if (id) lineEls[id] = el;
-    });
+    document
+      .querySelectorAll("#thief-intro-script .prologue-line")
+      // ↑ ビュー側の <section id="..."> に合わせて必要なら変更
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
 
     function setActive(lineId) {
-      // いったん全ての強調を解除
       Object.values(lineEls).forEach(function (el) {
         el.classList.remove("is-speaking");
       });
-
-      // 対象行にクラス付与＆スクロール
       if (lineId && lineEls[lineId]) {
         const el = lineEls[lineId];
         el.classList.add("is-speaking");
@@ -89,34 +96,16 @@
     let currentIndex = -1;
     const audio = new Audio();
 
-    // ★ 音声キャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/thief_intro?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) {
-          return res.arrayBuffer();
-        })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバルキャッシュから URL を取るヘルパー
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
       currentIndex += 1;
-
-      // 全部再生し終わったら終了
       if (currentIndex >= order.length) {
         setActive(null);
         return;
@@ -125,35 +114,28 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
-
+      // まずはプリロード済みキャッシュを参照
+      const cached = getCachedUrl("thief_intro", lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("thief-intro-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url =
+        // 万が一プリロードがまだなら、その場で取得
+        audio.src =
           "/voices/thief_intro?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("thief-intro-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       }
+
+      audio.play().catch(function (err) {
+        console.warn("play error:", err);
+        const btn = document.getElementById("thief-intro-play");
+        if (btn) btn.style.display = "inline-block";
+      });
     }
 
-    // 1行終わるごとに次の行を再生
     audio.addEventListener("ended", playNext);
 
-    // 再生ボタン（任意）
     const btn = document.getElementById("thief-intro-play");
     if (btn) {
       btn.addEventListener("click", function () {
@@ -163,16 +145,10 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

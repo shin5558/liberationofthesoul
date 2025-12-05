@@ -89,12 +89,21 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "ending_true_after";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ============================
+    // ★ BGM（そのまま）
+    // ============================
     const bgm    = document.getElementById("ending-bgm");
     const bgmBtn = document.getElementById("ending-bgm-play");
 
-    // ==== BGM 設定（音量＋ソース） ====
     if (bgm) {
-      bgm.volume = 0.3;  // ★ BGM は控えめ
+      bgm.volume = 0.3;
       bgm.src    = "<%= asset_path('ending_theme.mp3') %>";
 
       const bgmPromise = bgm.play();
@@ -112,7 +121,10 @@
       });
     }
 
-    // ===== ボイス再生（プリロード＋キャッシュ版） =====
+    // ============================
+    // ★ ボイス再生（プリロード対応）
+    // ============================
+
     const order = [
       "princess_5",
       "narrator_5",
@@ -145,30 +157,25 @@
     }
 
     let currentIndex = -1;
-    const audio = new Audio();
-    audio.volume = 1.0;  // ★ セリフはしっかり前に出す
 
-    // ★ 音声を事前取得してキャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/ending_true?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) { return res.arrayBuffer(); })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    const audioEl = document.getElementById("ending-true-step3-audio");
+    if (audioEl) {
+      audioEl.volume = 1.0;
     }
 
+    // ============================
+    // ★ グローバル voiceCache を見る
+    // ============================
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
+    }
+
+    // ============================
+    // ★ メイン再生関数
+    // ============================
     function playNext() {
       currentIndex += 1;
       if (currentIndex >= order.length) {
@@ -179,31 +186,31 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
+      // ending_true_after = SCENES 内のキー
+      const cached = getCachedUrl("ending_true_after", lineId);
+
       if (cached) {
-        audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("ending-true-step3-voice-play");
-          if (btn) btn.style.display = "inline-block";
-        });
+        audioEl.src = cached;
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url =
+        audioEl.src =
           "/voices/ending_true?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
+      }
+
+      const playPromise = audioEl.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
           const btn = document.getElementById("ending-true-step3-voice-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
-    audio.addEventListener("ended", playNext);
+    if (audioEl) {
+      audioEl.addEventListener("ended", playNext);
+    }
 
     const vbtn = document.getElementById("ending-true-step3-voice-play");
     if (vbtn) {
@@ -214,15 +221,12 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ============================
+    // ★ 自動再生開始（プリロード済み前提）
+    // ============================
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

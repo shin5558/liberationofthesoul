@@ -40,7 +40,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "warehouse_general";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ★ 再生順（倉庫イベント・将軍ルート）
     const order = ["princess_1", "narrator_1", "fairy_1", "princess_2"];
 
     // DOM 要素を保持
@@ -64,35 +71,19 @@
     }
 
     let currentIndex = -1;
-    const audio = new Audio();
+    const audio = document.getElementById("warehouse-general-audio") || new Audio();
+    audio.volume = 1.0; // セリフを前に
 
-    // ★ 音声キャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/warehouse_general?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) {
-          return res.arrayBuffer();
-        })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバルキャッシュから URL を取るヘルパー
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
       currentIndex += 1;
-
       if (currentIndex >= order.length) {
         setActive(null);
         return;
@@ -101,32 +92,26 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
-
+      // まずはプリロード済みキャッシュを参照
+      const cached = getCachedUrl("warehouse_general", lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("warehouse-general-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // プリロードが間に合わなかったときの保険
-        const url =
+        // 万が一プリロードがまだなら、その場で取得
+        audio.src =
           "/voices/warehouse_general?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("warehouse-general-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       }
+
+      audio.play().catch(function (err) {
+        console.warn("warehouse_general play error:", err);
+        const btn = document.getElementById("warehouse-general-play");
+        if (btn) btn.style.display = "inline-block";
+      });
     }
 
-    // 1セリフ終わるごとに次へ
     audio.addEventListener("ended", playNext);
 
     const btn = document.getElementById("warehouse-general-play");
@@ -138,16 +123,10 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

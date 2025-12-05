@@ -1,0 +1,372 @@
+<!-- app/views/shared/_voice_preloader.html.erb -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ==== グローバルキャッシュ & 状態 ====
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voicePreloadState) {
+      window.voicePreloadState = {
+        paused:  false,
+        running: false
+      };
+    }
+
+    function sleep(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    // ==== 1. シーン定義（endpoint と lineId 一覧） ====
+    const SCENES = {
+      prologue: {
+        endpoint: "/voices/prologue",
+        lines: ["narrator_1", "narrator_2", "fairy_1", "fairy_2"]
+      },
+
+      branch1_choice: {
+        endpoint: "/voices/branch1_choice",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "narrator_2",
+          "voice_1",
+          "fairy_2",
+          "narrator_3",
+          "fairy_3"
+        ]
+      },
+
+      goblin_intro: {
+        endpoint: "/voices/goblin_intro",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "narrator_2",
+          "goblin_1",
+          "fairy_2",
+          "narrator_3"
+        ]
+      },
+
+      thief_intro: {
+        endpoint: "/voices/thief_intro",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "narrator_2",
+          "narrator_3",
+          "thief_1",
+          "fairy_2",
+          "thief_leader_1",
+          "fairy_3",
+          "thief_leader_2",
+          "narrator_4"
+        ]
+      },
+
+      after_goblin: {
+        endpoint: "/voices/after_goblin",
+        lines: [
+          "fairy_1",
+          "fairy_2",
+          "narrator_1",
+          "fairy_3",
+          "narrator_2",
+          "fairy_4",
+          "narrator_3",
+          "fairy_5",
+          "narrator_4",
+          "fairy_6"
+        ]
+      },
+
+      after_thief: {
+        endpoint: "/voices/after_thief",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "narrator_2",
+          "woman_1",
+          "fairy_2",
+          "narrator_3",
+          "woman_2",
+          "narrator_4",
+          "woman_3",
+          "fairy_3",
+          "narrator_5",
+          "woman_4",
+          "narrator_6",
+          "fairy_4",
+          "narrator_7"
+        ]
+      },
+
+      branch2_choice: {
+        endpoint: "/voices/branch2_choice",
+        lines: [
+          "fairy_1",
+          "fairy_2",
+          "fairy_3",
+          "unknown_1",
+          "fairy_4",
+          "narrator_1",
+          "unknown_2",
+          "fairy_5",
+          "fairy_6",
+          "unknown_3",
+          "narrator_2"
+        ]
+      },
+
+      gatekeeper_intro: {
+        endpoint: "/voices/gatekeeper_intro",
+        lines: [
+          "narrator_1",
+          "gatekeeper_1",
+          "fairy_1",
+          "gatekeeper_2",
+          "fairy_2",
+          "gatekeeper_3",
+          "fairy_3",
+          "narrator_2"
+        ]
+      },
+
+      princess_meeting: {
+        endpoint: "/voices/princess_meeting",
+        lines: [
+          "narrator_1",
+          "mystery_1",
+          "narrator_2",
+          "princess_1",
+          "fairy_1",
+          "princess_2",
+          "narrator_3",
+          "princess_3",
+          "princess_4",
+          "fairy_2",
+          "narrator_4",
+          "princess_5",
+          "fairy_3",
+          "narrator_5"
+        ]
+      },
+
+      gatekeeper_from_princess: {
+        endpoint: "/voices/gatekeeper_from_princess",
+        lines: [
+          "narrator_1",
+          "princess_1",
+          "fairy_1",
+          "princess_2",
+          "narrator_2",
+          "princess_3",
+          "narrator_3",
+          "fairy_2",
+          "narrator_4",
+          "gatekeeper_1",
+          "narrator_5",
+          "fairy_3",
+          "gatekeeper_2",
+          "fairy_4",
+          "gatekeeper_3",
+          "narrator_6",
+          "fairy_5",
+          "narrator_7"
+        ]
+      },
+
+      general_intro: {
+        endpoint: "/voices/general_intro",
+        lines: [
+          "narrator_1",
+          "princess_1",
+          "fairy_1",
+          "princess_2",
+          "narrator_2",
+          "fairy_2",
+          "princess_3",
+          "narrator_3",
+          "fairy_3",
+          "princess_4",
+          "narrator_4",
+          "general_1",
+          "narrator_5",
+          "princess_5",
+          "general_2",
+          "narrator_6",
+          "general_3",
+          "princess_6",
+          "general_4",
+          "fairy_4",
+          "princess_7",
+          "narrator_7"
+        ]
+      },
+
+      warehouse_gate: {
+        endpoint: "/voices/warehouse_gate",
+        lines: ["fairy_1", "fairy_2", "narrator_1", "fairy_3"]
+      },
+
+      warehouse_general: {
+        endpoint: "/voices/warehouse_general",
+        lines: ["princess_1", "narrator_1", "fairy_1", "princess_2"]
+      },
+
+      demonlord_intro: {
+        endpoint: "/voices/demonlord_intro",
+        lines: [
+          "narrator_1",
+          "narrator_2",
+          "narrator_3",
+          "demonlord_1",
+          "narrator_4",
+          "fairy_1",
+          "demonlord_2",
+          "demonlord_3",
+          "fairy_2",
+          "narrator_5",
+          "fairy_3",
+          "demonlord_4",
+          "narrator_6",
+          "fairy_4",
+          "narrator_7"
+        ]
+      },
+
+      ending_normal: {
+        endpoint: "/voices/ending_normal",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "fairy_2",
+          "fairy_3",
+          "narrator_2",
+          "narrator_3",
+          "narrator_4",
+          "fairy_4",
+          "narrator_5"
+        ]
+      },
+
+      ending_true_step1: {
+        endpoint: "/voices/ending_true",
+        lines: [
+          "narrator_1",
+          "fairy_1",
+          "princess_1",
+          "narrator_2",
+          "fairy_2",
+          "princess_2",
+          "narrator_3",
+          "princess_3",
+          "fairy_3",
+          "princess_4",
+          "narrator_4"
+        ]
+      },
+
+      ending_true_after: {
+        endpoint: "/voices/ending_true",
+        lines: [
+          "princess_5",
+          "narrator_5",
+          "fairy_4",
+          "narrator_6",
+          "narrator_7",
+          "fairy_5",
+          "narrator_8",
+          "fairy_6",
+          "narrator_9"
+        ]
+      }
+    };
+
+    // ==== 2. ストーリー進行順（同時タイミングは同じ配列） ====
+    const SCENE_GROUPS = [
+      ["prologue"],                               // 1
+      ["branch1_choice"],                         // 2
+      ["goblin_intro", "thief_intro"],            // 3
+      ["after_goblin", "after_thief"],            // 4
+      ["branch2_choice"],                         // 5
+      ["gatekeeper_intro", "princess_meeting"],   // 6
+      ["gatekeeper_from_princess", "general_intro"], // 7
+      ["warehouse_gate", "warehouse_general"],    // 8
+      ["demonlord_intro"],                        // 9
+      ["ending_normal"],                          // 10
+      ["ending_true_step1"],                      // 11
+      ["ending_true_after"]                       // 12
+    ];
+
+    // ==== 3. シーン単位で「1行ずつ」プリロード ====
+    async function preloadScene(sceneKey) {
+      const scene = SCENES[sceneKey];
+      if (!scene) return;
+
+      if (!window.voiceCache[sceneKey]) {
+        window.voiceCache[sceneKey] = {};
+      }
+      const cache = window.voiceCache[sceneKey];
+
+      for (const lineId of scene.lines) {
+        if (window.voicePreloadState.paused) {
+          // 一時停止がかかったら中断
+          return;
+        }
+        if (cache[lineId]) continue; // すでにあるならスキップ
+
+        const url =
+          scene.endpoint +
+          "?line=" + encodeURIComponent(lineId) +
+          "&t=" + Date.now();
+
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const buf = await res.arrayBuffer();
+          const blob = new Blob([buf], { type: "audio/wav" });
+          cache[lineId] = URL.createObjectURL(blob);
+        } catch (err) {
+          console.warn("preload error:", sceneKey, lineId, err);
+        }
+
+        // ★ 1ボイスごとの小休止（サーバー負荷を下げる）
+        await sleep(200); // 重すぎるようなら 300〜500 に増やしてOK
+      }
+    }
+
+    // ==== 4. 外から呼べる一時停止 / 再開関数 ====
+    window.pauseVoicePreload = function () {
+      window.voicePreloadState.paused = true;
+    };
+
+    window.resumeVoicePreload = function () {
+      if (!window.voicePreloadState.paused) return;
+      window.voicePreloadState.paused = false;
+      // 止めたあと再開したい場合はもう一度全体を回す
+      runPreloadGroups();
+    };
+
+    // ==== 5. グループ順にプリロード（同じタイミングは並列） ====
+    async function runPreloadGroups() {
+      if (window.voicePreloadState.running) return; // 二重起動防止
+      window.voicePreloadState.running = true;
+
+      try {
+        for (const group of SCENE_GROUPS) {
+          if (window.voicePreloadState.paused) break;
+
+          // 同タイミングのシーンは並列で
+          await Promise.all(group.map(preloadScene));
+
+          // グループ間の小休止
+          await sleep(500);
+        }
+      } finally {
+        window.voicePreloadState.running = false;
+      }
+    }
+
+    // ==== プリロード開始 ====
+    runPreloadGroups();
+  });
+</script>

@@ -35,7 +35,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順
+    // ★ 再生順（SCENES.goblin_intro.lines と同じ順）
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "goblin_intro";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
     const order = [
       "narrator_1",
       "fairy_1",
@@ -45,20 +52,20 @@
       "narrator_3"
     ];
 
-    // .js-line 要素を全部拾って、data-line-id をキーに保持
+    // DOM 要素を保持
     const lineEls = {};
-    document.querySelectorAll(".js-line").forEach(function (el) {
-      const id = el.dataset.lineId;
-      if (id) lineEls[id] = el;
-    });
+    document
+      .querySelectorAll("#goblin-intro-script .prologue-line")
+      // ↑ あなたのビューの <section id="..."> に合わせて必要なら変更
+      .forEach(function (el) {
+        const id = el.dataset.lineId;
+        if (id) lineEls[id] = el;
+      });
 
     function setActive(lineId) {
-      // いったん全て非アクティブに
       Object.values(lineEls).forEach(function (el) {
         el.classList.remove("is-speaking");
       });
-
-      // 対象行にクラス付与＆スクロール
       if (lineId && lineEls[lineId]) {
         const el = lineEls[lineId];
         el.classList.add("is-speaking");
@@ -69,36 +76,16 @@
     let currentIndex = -1;
     const audio = new Audio();
 
-    // ★ 音声キャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      if (voiceCache[lineId]) {
-        // すでにキャッシュ済み
-        return Promise.resolve();
-      }
-
-      const url =
-        "/voices/goblin_intro?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) {
-          return res.arrayBuffer();
-        })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバルキャッシュから URL を取るヘルパー
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
       currentIndex += 1;
-
-      // 全部再生し終えたら終了
       if (currentIndex >= order.length) {
         setActive(null);
         return;
@@ -107,36 +94,29 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
-
+      // まずはプリロード済みキャッシュを参照
+      const cached = getCachedUrl("goblin_intro", lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("goblin-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // まれにプリロードが間に合わなかった場合の保険
-        const url =
+        // 万が一プリロードがまだなら、その場で取得
+        audio.src =
           "/voices/goblin_intro?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("goblin-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       }
+
+      audio.play().catch(function (err) {
+        console.warn("play error:", err);
+        const btn = document.getElementById("goblin-intro-play");
+        if (btn) btn.style.display = "inline-block";
+      });
     }
 
-    // 1個終わるごとに次を再生
     audio.addEventListener("ended", playNext);
 
-    // 再生ボタン（任意）
-    const btn = document.getElementById("goblin-play");
+    const btn = document.getElementById("goblin-intro-play");
     if (btn) {
       btn.addEventListener("click", function () {
         btn.style.display = "none";
@@ -145,15 +125,10 @@
       });
     }
 
-    // ★ 最初の1行だけプリロードしてから自動再生開始
-    preloadVoice(order[0]).then(function () {
+    // ページ表示後に自動再生を試みる
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 残りの行はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

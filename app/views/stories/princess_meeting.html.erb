@@ -120,7 +120,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順（上から順に読む）
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "princess_meeting";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ★ 再生順（SCENES.princess_meeting.lines と一致）
     const order = [
       "narrator_1",
       "mystery_1",
@@ -148,41 +155,26 @@
       });
 
     function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking", "is-active");
+      Object.values(lineEls).forEach((el) => {
+        el.classList.remove("is-speaking");
       });
       if (lineId && lineEls[lineId]) {
         const el = lineEls[lineId];
-        el.classList.add("is-speaking", "is-active");
+        el.classList.add("is-speaking");
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
     let currentIndex = -1;
     const audio = new Audio();
+    audio.volume = 1.0;
 
-    // ★ 音声キャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/princess_meeting?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) {
-          return res.arrayBuffer();
-        })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバルプリロードキャッシュから URL を取る
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
@@ -196,53 +188,41 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
-
+      // プリロード済みのものを最優先で使う
+      const cached = getCachedUrl("princess_meeting", lineId);
       if (cached) {
         audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("princess-meeting-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       } else {
-        // プリロードが間に合わなかったときの保険
-        const url =
+        // プリロードがまだなら、その場で取得
+        audio.src =
           "/voices/princess_meeting?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
-          const btn = document.getElementById("princess-meeting-play");
-          if (btn) btn.style.display = "inline-block";
-        });
       }
+
+      audio.play().catch((err) => {
+        console.warn("princess_meeting play error:", err);
+        const btn = document.getElementById("princess-meeting-play");
+        if (btn) btn.style.display = "inline-block";
+      });
     }
 
-    // 1セリフ終わるたびに次へ
     audio.addEventListener("ended", playNext);
 
     const btn = document.getElementById("princess-meeting-play");
     if (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", () => {
         btn.style.display = "none";
         currentIndex = -1;
         playNext();
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // ページ表示後に自動再生トライ
+    setTimeout(() => {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

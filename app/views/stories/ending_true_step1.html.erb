@@ -99,7 +99,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 再生順
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "ending_true_step1";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ★ 再生順（SCENES.ending_true_step1.lines と一致）
     const order = [
       "narrator_1",
       "fairy_1",
@@ -135,28 +142,17 @@
     }
 
     let currentIndex = -1;
-    const audio = new Audio();
+    const audioEl = document.getElementById("ending-true-step1-audio");
+    if (audioEl) {
+      audioEl.volume = 1.0; // セリフは前へ
+    }
 
-    // ★ 音声を事前取得してキャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/ending_true?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) { return res.arrayBuffer(); })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバル voiceCache を参照
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
@@ -169,31 +165,31 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
+      // まずプリロード済みキャッシュ（ending_true_step1）を見る
+      const cached = getCachedUrl("ending_true_step1", lineId);
       if (cached) {
-        audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("ending-true-step1-play");
-          if (btn) btn.style.display = "inline-block";
-        });
+        audioEl.src = cached;
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url =
+        // 万一プリロードが間に合っていない場合
+        audioEl.src =
           "/voices/ending_true?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
+      }
+
+      const playPromise = audioEl.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
           const btn = document.getElementById("ending-true-step1-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
-    audio.addEventListener("ended", playNext);
+    if (audioEl) {
+      audioEl.addEventListener("ended", playNext);
+    }
 
     const btn = document.getElementById("ending-true-step1-play");
     if (btn) {
@@ -204,16 +200,10 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロード
-    preloadVoice(order[0]).then(function () {
+    // ★ 自動再生開始（プリロード済み前提）
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>

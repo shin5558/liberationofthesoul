@@ -89,7 +89,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // ★ 再生順
+        // ==== ここだけ追加・重要 ====
+    const SCENE_KEY = "ending_normal";
+    if (!window.voiceCache) window.voiceCache = {};
+    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
+    const sceneCache = window.voiceCache[SCENE_KEY];
+    // ============================
+
+    // ★ 再生順（SCENES.ending_normal.lines と同じ）
     const order = [
       "narrator_1",
       "fairy_1",
@@ -123,28 +130,17 @@
     }
 
     let currentIndex = -1;
-    const audio = new Audio();
+    const audioEl = document.getElementById("ending-normal-audio");
+    if (audioEl) {
+      audioEl.volume = 1.0;
+    }
 
-    // ★ ここで音声を事前取得してキャッシュ
-    const voiceCache = {};
-
-    function preloadVoice(lineId) {
-      // すでにキャッシュ済みなら何もしない
-      if (voiceCache[lineId]) return Promise.resolve();
-
-      const url =
-        "/voices/ending_normal?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) { return res.arrayBuffer(); })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          voiceCache[lineId] = objectUrl;
-        });
+    // ★ グローバル voiceCache から URL を取るヘルパー
+    function getCachedUrl(sceneKey, lineId) {
+      if (!window.voiceCache) return null;
+      const sceneCache = window.voiceCache[sceneKey];
+      if (!sceneCache) return null;
+      return sceneCache[lineId] || null;
     }
 
     function playNext() {
@@ -157,31 +153,31 @@
       const lineId = order[currentIndex];
       setActive(lineId);
 
-      const cached = voiceCache[lineId];
+      // まずプリロード済みキャッシュを参照
+      const cached = getCachedUrl("ending_normal", lineId);
       if (cached) {
-        audio.src = cached;
-        audio.play().catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("ending-normal-play");
-          if (btn) btn.style.display = "inline-block";
-        });
+        audioEl.src = cached;
       } else {
-        // 万が一プリロードが間に合ってない時の保険
-        const url =
+        // プリロードが間に合っていないときの保険
+        audioEl.src =
           "/voices/ending_normal?line=" +
           encodeURIComponent(lineId) +
           "&t=" +
           Date.now();
-        audio.src = url;
-        audio.play().catch(function (err) {
-          console.warn("play error (fallback):", err);
+      }
+
+      const playPromise = audioEl.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
           const btn = document.getElementById("ending-normal-play");
           if (btn) btn.style.display = "inline-block";
         });
       }
     }
 
-    audio.addEventListener("ended", playNext);
+    if (audioEl) {
+      audioEl.addEventListener("ended", playNext);
+    }
 
     const btn = document.getElementById("ending-normal-play");
     if (btn) {
@@ -192,16 +188,10 @@
       });
     }
 
-    // ★ まず1行目だけプリロード → 終わったら再生開始
-    //   残りは裏で並行プリロードしておく
-    preloadVoice(order[0]).then(function () {
+    // 自動再生トライ
+    setTimeout(function () {
       currentIndex = -1;
       playNext();
-    });
-
-    // 2行目以降はバックグラウンドでプリロード
-    order.slice(1).forEach(function (lineId) {
-      preloadVoice(lineId);
-    });
+    }, 500);
   });
 </script>
