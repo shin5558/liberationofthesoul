@@ -81,11 +81,27 @@ class Battle < ApplicationRecord
 
   # --- ダメージ ---
   def damage_player!(amount = DAMAGE_AMOUNT)
+    amount = amount.to_i
+    return if amount <= 0
+
+    # ★ 先にブロック判定！
+    if consume_block_for!(:player)
+      # ここでログ残したければ BattleAction 作るなど
+      # battle_actions.create!(notes: "Earth Wall により敵の攻撃を無効化")
+      return
+    end
+
+    # ブロックが無かったら普通にダメージ適用
     self.player_hp = [player_hp - amount, 0].max
     self.status = :lost if player_hp <= 0
   end
 
   def damage_enemy!(amount = DAMAGE_AMOUNT)
+    amount = amount.to_i
+    return if amount <= 0
+
+    return if consume_block_for!(:enemy)
+
     self.enemy_hp = [enemy_hp - amount, 0].max
     self.status = :won if enemy_hp <= 0
   end
@@ -249,6 +265,96 @@ class Battle < ApplicationRecord
       slot_index: 0 # 無属性専用スロット
     )
   end
+
+  # 現在のブロック回数を取得
+  def player_block_charges
+    (flags || {}).dig('block', 'player').to_i
+  end
+
+  def enemy_block_charges
+    (flags || {}).dig('block', 'enemy').to_i
+  end
+
+  # side: :player / :enemy, amount: 追加する回数
+  def add_block_charges!(side:, amount:)
+    f = (flags || {}).deep_dup
+    f['block'] ||= {}
+
+    key = side.to_s # "player" or "enemy"
+    f['block'][key] = f['block'][key].to_i + amount.to_i
+
+    self.flags = f
+    save!
+  end
+
+  # このターンの開始時にブロック回数をリセットしたいとき用
+  def reset_block_charges!
+    f = (flags || {}).deep_dup
+    f['block'] = { 'player' => 0, 'enemy' => 0 }
+    self.flags = f
+    save!
+  end
+
+  # 攻撃を受ける直前に呼んで、「ブロックが残っていれば1回ぶん消費して true を返す」
+  def consume_block_for!(side)
+    f   = (flags || {}).deep_dup
+    blk = f['block'] || {}
+    key = side.to_s
+
+    current = blk[key].to_i
+    return false if current <= 0
+
+    blk[key] = current - 1
+    f['block'] = blk
+    self.flags = f
+    save!
+    true
+  end
+
+  # =========================
+  #  Effect 適用ロジック
+  # =========================
+  # side: :player / :enemy  …「誰にとっての効果か」
+  def apply_effect!(effect, side:)
+    case effect.kind
+    when 'damage'
+      if effect.target == 'player'
+        damage_player!(effect.value)
+      else
+        damage_enemy!(effect.value)
+      end
+
+    when 'heal'
+      if effect.target == 'player'
+        heal_player!(effect.value)
+      else
+        # heal_enemy! を使うならここ
+        # heal_enemy!(effect.value)
+      end
+
+    when 'buff_attack'
+      add_buff!(
+        side: side, # どちら側に乗るバフか
+        stat: :attack,
+        amount: effect.value,
+        duration_turns: effect.duration_turns || 1
+      )
+
+    when 'grant_priority'
+      grant_priority!(
+        side: side,
+        duration_turns: effect.duration_turns || 1
+      )
+
+    when 'block_attack' # ★ Earth Wall 用
+      # value = 1 なら「1 回ぶんブロック」
+      add_block_charges!(
+        side: side,
+        amount: effect.value.presence || 1
+      )
+    end
+  end
+
   # ----- ここまで追加 -----
 
   private

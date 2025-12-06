@@ -11,7 +11,15 @@ fire    = Element.find_by!(code: 'fire')
 water   = Element.find_by!(code: 'water')
 wind    = Element.find_by!(code: 'wind')
 earth   = Element.find_by!(code: 'earth')
+light   = Element.find_by!(code: 'light')
+dark    = Element.find_by!(code: 'dark')
 neutral = Element.find_by!(code: 'neutral')
+
+# ==============================
+# 不要カード削除（4枚以外は消す）
+# ==============================
+keep_names = ['Wind Storm', 'Water Heal', 'Rising Power', 'Earth Wall']
+Card.where.not(name: keep_names).destroy_all
 
 # ==============================
 # Player & Enemies
@@ -47,14 +55,14 @@ dragon_pup = Enemy.find_or_create_by!(name: 'Dragon Pup') do |e|
 end
 
 # ==============================
-# Effects（攻撃 / 回復 / バフ / 先行権）
+# Effects（攻撃 / 回復 / バフ / 先行権 / 攻撃無効）
 # ==============================
 
-# 既存のダメージ用 Effect（名前はそのまま再利用）
+# ダメージ
 atk = Effect.find_or_create_by!(name: 'DealDamage') do |eff|
-  eff.kind           = :damage # enum
+  eff.kind           = :damage       # enum
   eff.target         = :enemy
-  eff.value          = 2
+  eff.value          = 1             # 基本ダメージ（formulaで上書きしてもOK）
   eff.priority       = 0
   eff.formula        = 'damage = power * magnitude'
   eff.duration_turns = 0
@@ -90,45 +98,59 @@ grant_priority_1t = Effect.find_or_create_by!(name: 'GrantPriority1T') do |eff|
   eff.duration_turns = 1
 end
 
+# 敵の攻撃を1ターンに1回だけ無効にする（土の壁）
+earth_wall_effect = Effect.find_or_create_by!(name: 'EarthWallBlock1T') do |eff|
+  eff.kind           = :block_attack   # ★ Effect.kind の enum に :block_attack を追加しておくこと
+  eff.target         = :player         # 自分への攻撃を守る
+  eff.value          = 1               # 無効化できる攻撃回数
+  eff.priority       = 0
+  eff.formula        = 'block_attack'  # 実際のロジック側で判定に使うラベル的な文字列
+  eff.duration_turns = 1               # 1ターン有効
+end
+
 # ==============================
-# Cards
+# Cards（4枚だけを seed で保証）
 # ==============================
 
-# 既存の「Flame Punch」カード
-punch = Card.find_or_create_by!(name: 'Flame Punch') do |c|
-  c.element     = fire
-  c.hand_type   = :g # 0
-  c.power       = 2
-  c.rarity      = 1
-  c.description = '火のパンチ'
-end
+# Wind Storm：敵に1ダメージ
+wind_storm = Card.find_or_initialize_by(name: 'Wind Storm')
+wind_storm.update!(
+  element: wind,
+  hand_type: :g,
+  power: 1, # damage = power * magnitude なので 1ダメージ
+  rarity: 1,
+  description: '風の力で敵に1ダメージを与える'
+)
 
-# 回復カード
-heal_card = Card.find_or_create_by!(name: 'Water Heal') do |c|
-  c.element     = water
-  c.hand_type   = :p
-  c.power       = 0
-  c.rarity      = 1
-  c.description = '自分を1回復する水のカード'
-end
+# Water Heal：自分のHPを1回復
+water_heal = Card.find_or_initialize_by(name: 'Water Heal')
+water_heal.update!(
+  element: water,
+  hand_type: :p,
+  power: 0,
+  rarity: 1,
+  description: '自分のHPを1回復する水のカード'
+)
 
-# 攻撃バフカード
-buff_card = Card.find_or_create_by!(name: 'Rising Power') do |c|
-  c.element     = wind
-  c.hand_type   = :t
-  c.power       = 0
-  c.rarity      = 2
-  c.description = 'このターンの攻撃力が1上がる'
-end
+# Rising Power：このターン攻撃+1
+rising_power = Card.find_or_initialize_by(name: 'Rising Power')
+rising_power.update!(
+  element: wind,
+  hand_type: :t,
+  power: 0,
+  rarity: 2,
+  description: 'このターンの攻撃力が1上がる'
+)
 
-# 無属性カード（戦闘前用）
-neutral_card = Card.find_or_create_by!(name: 'Neutral Demo Card') do |c|
-  c.element     = nil # ★ 無属性
-  c.hand_type   = :g
-  c.power       = 0
-  c.rarity      = 1
-  c.description = '戦闘前に使えるデモ用カード'
-end
+# Earth Wall：このターン、敵の攻撃を1回無効
+earth_wall_card = Card.find_or_initialize_by(name: 'Earth Wall')
+earth_wall_card.update!(
+  element: earth,
+  hand_type: :g, # 好きな手でOK。ここではグーにしておく
+  power: 0,
+  rarity: 2,
+  description: 'このターン、敵の攻撃を1回無効にする土の防御カード'
+)
 
 # ==============================
 # CardEffects（カードに効果を紐付け）
@@ -142,17 +164,17 @@ def attach_effect(card, effect, position: 1, magnitude: 1.0)
   end
 end
 
-# Flame Punch → ダメージ
-attach_effect(punch, atk, position: 1, magnitude: 2.0)
+# Wind Storm → DealDamage（1ダメージ）
+attach_effect(wind_storm, atk, position: 1, magnitude: 1.0)
 
 # Water Heal → 自分を1回復
-attach_effect(heal_card, heal_self, position: 1)
+attach_effect(water_heal, heal_self, position: 1)
 
 # Rising Power → 攻撃+1(1T)
-attach_effect(buff_card, buff_atk_1t, position: 1)
+attach_effect(rising_power, buff_atk_1t, position: 1)
 
-# Neutral Demo Card → 先行権 1T
-attach_effect(neutral_card, grant_priority_1t, position: 1)
+# Earth Wall → 敵の攻撃を1回ブロック
+attach_effect(earth_wall_card, earth_wall_effect, position: 1, magnitude: 1.0)
 
 puts 'Seed done.'
 puts "Elements: #{Element.count}, Enemies: #{Enemy.count}, Cards: #{Card.count}, Effects: #{Effect.count}, CardEffects: #{CardEffect.count}"
@@ -169,7 +191,7 @@ story_enemies = [
     code: 'goblin',
     base_hp: 5,
     boss: false,
-    element_id: 7, # Neutral
+    element: neutral,
     description: '街道沿いに現れる小柄なゴブリン'
   },
   {
@@ -177,7 +199,7 @@ story_enemies = [
     code: 'thief',
     base_hp: 5,
     boss: false,
-    element_id: 7, # Neutral
+    element: neutral,
     description: '旅人を襲う悪名高い盗賊'
   },
   {
@@ -185,7 +207,7 @@ story_enemies = [
     code: 'gatekeeper',
     base_hp: 5,
     boss: false,
-    element_id: 4, # Earth
+    element: earth,
     description: '城門を守る屈強な門番'
   },
   {
@@ -193,7 +215,7 @@ story_enemies = [
     code: 'general',
     base_hp: 5,
     boss: false,
-    element_id: 1, # Fire
+    element: fire,
     description: '王国最強と名高い将軍（真エンディング条件2）'
   },
   {
@@ -201,7 +223,7 @@ story_enemies = [
     code: 'demonlord',
     base_hp: 5,
     boss: true,
-    element_id: 6, # Dark
+    element: dark,
     description: '魔王。全ての戦いの頂点に立つ存在'
   }
 ]
@@ -211,7 +233,7 @@ story_enemies.each do |attrs|
   enemy.name        = attrs[:name]
   enemy.base_hp     = attrs[:base_hp]
   enemy.boss        = attrs[:boss]
-  enemy.element_id  = attrs[:element_id]
+  enemy.element     = attrs[:element]
   enemy.description = attrs[:description]
   enemy.flags     ||= {}
   enemy.save!

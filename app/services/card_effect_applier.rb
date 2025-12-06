@@ -42,6 +42,8 @@ class CardEffectApplier
       apply_buff_like(effect)
     when :grant_priority
       apply_priority(effect)
+    when :block_attack # ★ ここを追加！
+      apply_block(effect)
     else
       Rails.logger.warn "[CardEffectApplier] Unknown effect kind: #{effect.kind}"
     end
@@ -107,5 +109,22 @@ class CardEffectApplier
     duration = 1 if duration <= 0
 
     @battle.grant_priority!(side: side, duration_turns: duration)
+  end
+
+  # ★ 追加: 攻撃ブロック(Earth Wall)
+  def apply_block(effect)
+    # どちら側にブロックを与えるか
+    side =
+      case effect.target.to_sym
+      when :player then :player
+      when :enemy  then :enemy
+      else              :player
+      end
+
+    # 何回ぶんブロックするか（value が 0 や nil なら 1 回）
+    charges = effect.value.to_i
+    charges = 1 if charges <= 0
+
+    @battle.add_block_charges!(side: side, amount: charges)
   end
 end
