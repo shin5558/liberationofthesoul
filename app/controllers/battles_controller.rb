@@ -24,7 +24,7 @@ class BattlesController < ApplicationController
     # もし進行中バトルはあるけど、URL で「別の敵」が指定されていたら、
     # その古いバトルは終了扱いにして、新しく作り直す。
     if @battle && requested_enemy_code.present? && @battle.enemy.code != requested_enemy_code
-      @battle.update(status: :finished)
+      @battle.update(status: :aborted)
       @battle = nil
     end
 
