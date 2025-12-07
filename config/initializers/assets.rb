@@ -13,3 +13,5 @@ Rails.application.config.assets.version = '1.0'
 Rails.application.config.assets.precompile += %w[
   ending_theme.mp3
 ]
+# app/assets/sounds 以下もアセットとして探索してね
+Rails.application.config.assets.paths << Rails.root.join('app', 'assets', 'sounds')
