@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Liberationofthesoul</title>
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
-  </head>
+  <title>Liberationofthesoul</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+
+  <%# ★ これだけにする %>
+  <%= javascript_importmap_tags %>
+</head>
 
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : '' %>">
+
     <header class="site-header">
       <div class="site-header__inner">
         <span class="site-header__title">Liberation of the Soul</span>
-
-
       </div>
     </header>
 
@@ -24,5 +25,70 @@
     <footer class="site-footer">
       © 2025 Liberation of the Soul
     </footer>
+
+    <!-- ==========================================
+         ★ 共通BGMプレイヤー（Turboで永続）
+         ========================================== -->
+    <audio id="battle-bgm" data-turbo-permanent preload="auto" loop></audio>
+
+    <!-- BGM 用 script はそのまま -->
+
+    <script>
+  // ★ BGM を鳴らす
+  window.setBattleBgm = function(url) {
+    const audio = document.getElementById("battle-bgm");
+    if (!audio || !url) return;
+
+    const prev = audio.dataset.currentBgmUrl || "";
+
+    // 同じ曲なら src 触らずそのまま再生
+    if (prev === url) {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+      return;
+    }
+
+    // 曲が変わるときだけ差し替え
+    audio.dataset.currentBgmUrl = url;
+    audio.src = url;
+    audio.load();
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  };
+
+  // ★ BGM を完全停止
+  window.stopBattleBgm = function() {
+    const audio = document.getElementById("battle-bgm");
+    if (!audio) return;
+
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.removeAttribute("src");
+      audio.load();
+      audio.dataset.currentBgmUrl = "";
+    } catch (e) {
+      console.warn("failed to stop battle-bgm:", e);
+    }
+  };
+
+  // ★ turbo:load のたびに「このページは BGM いる？」を判定
+  document.addEventListener("turbo:load", function() {
+    // data-bgm-url を持つ要素を探す（バトル画面でもストーリーでも共通ルール）
+    const bgmNode = document.querySelector("[data-bgm-url]");
+
+    if (bgmNode) {
+      const url = bgmNode.dataset.bgmUrl;
+      if (url && window.setBattleBgm) {
+        window.setBattleBgm(url);
+      }
+    } else {
+      if (window.stopBattleBgm) {
+        window.stopBattleBgm();
+      }
+    }
+  });
+</script>
   </body>
 </html>

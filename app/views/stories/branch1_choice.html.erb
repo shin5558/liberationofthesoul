@@ -1,34 +1,34 @@
 <h1>分岐1：森の手前</h1>
 
-<div class="story-text-block">
-  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+<section id="branch1-choice-script" class="story-text-block">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_1">
     森の入口へと続く街道。その先で、何かが横たわっている。近づくにつれ、それが横倒しになった馬車と、その周囲をうろつく小さな影だと分かってくる。
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_1">
     「……先の方に倒れた馬車と、その近くにゴブリンが三匹いるよ。」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_2">
     耳をすませると、風の流れとは違う、不自然な音が混じっている気がする。
   </p>
 
-  <p class="story-line is-voice js-line" data-line-id="voice_1">
+  <p class="prologue-line story-line is-voice js-line" data-line-id="voice_1">
     「……たすけて……！」
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_2">
     「今のは……、悲鳴……？」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_3">
     道の先では、今にも馬車をあさろうとするゴブリンたち。一方で、森の奥からは、確かに誰かの助けを求める声が聞こえた気がする。
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_3">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_3">
     「道の先には、馬車とゴブリン。でも、森の方からも誰かの声が聞こえたよ……。どうする？」
   </p>
-</div>
+</section>
 
 <hr>
 
@@ -48,111 +48,42 @@
   </li>
 </ul>
 
-<audio id="scene-audio"></audio>
+<div style="margin-top: 16px;">
+  <button id="branch1-choice-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="branch1-choice-audio" style="display:none;"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "branch1_choice";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃないときは何もしない（Turbo対策）
+    const container = document.getElementById("branch1-choice-script");
+    if (!container) return;
 
-    // 再生順（branch1_choice の順番）
-    const order = [
-      "narrator_1",
-      "fairy_1",
-      "narrator_2",
-      "voice_1",
-      "fairy_2",
-      "narrator_3",
-      "fairy_3"
-    ];
-
-    // DOM 要素を保持（.js-line を全部対象にする）
-    const lineEls = {};
-    document.querySelectorAll(".js-line").forEach(function (el) {
-      const id = el.dataset.lineId;
-      if (id) lineEls[id] = el;
-    });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }
-
-    let currentIndex = -1;
-
-    // ★ 実際の <audio> 要素を使う
-    const audio = document.getElementById("scene-audio");
-    if (!audio) {
-      console.error("audio#scene-audio が見つかりません");
+    // グローバルのセットアップ関数がなければ何もしない
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません");
       return;
     }
 
-    // ★ グローバルキャッシュから URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl("branch1_choice", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得
-        audio.src =
-          "/voices/branch1?line=" +              // ★ここを branch1 に
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      const p = audio.play();
-      if (p && p.catch) {
-        p.catch(function (err) {
-          console.warn("play error:", err);
-          const btn = document.getElementById("branch1-choice-play");
-          if (btn) btn.style.display = "inline-block";
-        });
-      }
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("branch1-choice-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通のボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // VoicesController::BRANCH1_LINES と対応する再生順
+      order: [
+        "narrator_1",
+        "fairy_1",
+        "narrator_2",
+        "voice_1",
+        "fairy_2",
+        "narrator_3",
+        "fairy_3"
+      ],
+      containerSelector: "#branch1-choice-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#branch1-choice-play",
+      basePath: "/voices/branch1"
+    });
   });
 </script>

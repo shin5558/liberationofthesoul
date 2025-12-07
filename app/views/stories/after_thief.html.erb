@@ -108,109 +108,41 @@
 <audio id="after-thief-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "after_thief";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない（他ページへの影響を防ぐ）
+    const container = document.getElementById("after-thief-script");
+    if (!container) return;
 
-    // ★ 再生順（SCENES.after_thief.lines と同じ順）
-    const order = [
-      "narrator_1",
-      "fairy_1",
-      "narrator_2",
-      "woman_1",
-      "fairy_2",
-      "narrator_3",
-      "woman_2",
-      "narrator_4",
-      "woman_3",
-      "fairy_3",
-      "narrator_5",
-      "woman_4",
-      "narrator_6",
-      "fairy_4",
-      "narrator_7"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#after-thief-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数がなければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（after_thief）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-
-    // ★ グローバルキャッシュから URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl("after_thief", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得（保険）
-        audio.src =
-          "/voices/after_thief?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch(function (err) {
-        console.warn("play error:", err);
-        const btn = document.getElementById("after-thief-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("after-thief-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::AFTER_THIEF_LINES と同じ順にする
+      order: [
+        "narrator_1",
+        "fairy_1",
+        "narrator_2",
+        "woman_1",
+        "fairy_2",
+        "narrator_3",
+        "woman_2",
+        "narrator_4",
+        "woman_3",
+        "fairy_3",
+        "narrator_5",
+        "woman_4",
+        "narrator_6",
+        "fairy_4",
+        "narrator_7"
+      ],
+      containerSelector: "#after-thief-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#after-thief-play",
+      basePath: "/voices/after_thief"
+    });
   });
 </script>

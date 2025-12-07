@@ -1,154 +1,91 @@
 <h1>土竜盗賊団との遭遇</h1>
 
-<div class="story-text-block">
-  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+<section id="thief-intro-script" class="story-text-block">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_1">
     あなたは、森の奥から聞こえた悲鳴を見過ごすことができなかった。倒れた馬車とゴブリンたちは気になるものの、人の叫び声はもっと危険な兆しに思えた。
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_1">
     「悲鳴の方に行くんだね……分かった、一緒に行こう。急ごう、誰かが本当に助けを求めているかもしれない。」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_2">
     枝をかき分け、声の聞こえた方向へと進んでいく。やがて木々が途切れ、少しひらけた場所に出たそのとき――。
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_3">
     そこには、縄で縛られて地面に座り込む一人の女性と、その周囲を取り囲む三人の男たちの姿があった。
   </p>
 
-  <p class="story-line is-thief js-line" data-line-id="thief_1">
+  <p class="prologue-line story-line is-thief js-line" data-line-id="thief_1">
     「ん？ なんだぁ、おまえは。」
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_2">
     「そっちこそ何者よ。縛られた人を囲んで……いい趣味してないわね。」
   </p>
 
-  <p class="story-line is-thief-leader js-line" data-line-id="thief_leader_1">
+  <p class="prologue-line story-line is-thief-leader js-line" data-line-id="thief_leader_1">
     「俺たちは、土竜盗賊団だ。……お前さん、その妖精を置いていきな。そうしたら、お前さんだけは見逃してやる。」
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_3">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_3">
     「嫌に決まっているでしょ！ わたしは、この人と一緒に行くって決めたんだから！」
   </p>
 
-  <p class="story-line is-thief-leader js-line" data-line-id="thief_leader_2">
+  <p class="prologue-line story-line is-thief-leader js-line" data-line-id="thief_leader_2">
     「……チッ。惜しいことをする。しょうがねぇ、お前らも売り物にしてやるよ！」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_4">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_4">
     盗賊たちが一斉に武器を構え、にやりと笑う。森の静寂は破られ、張り詰めた空気の中で、決戦の時を告げる鼓動だけが響いていた。
   </p>
-</div>
+</section>
 
 <hr>
 
 <p>「盗賊達との戦闘に入る」</p>
 <%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "thief"), class: "btn" %>
 
-<audio id="scene-audio"></audio>
+<div style="margin-top: 16px;">
+  <button id="thief-intro-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="thief-intro-audio" style="display:none;"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "thief_intro";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない
+    const container = document.getElementById("thief-intro-script");
+    if (!container) return;
 
-    // ★ 再生順（SCENES.thief_intro.lines と同じ順）
-    const order = [
-      "narrator_1",
-      "fairy_1",
-      "narrator_2",
-      "narrator_3",
-      "thief_1",
-      "fairy_2",
-      "thief_leader_1",
-      "fairy_3",
-      "thief_leader_2",
-      "narrator_4"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#thief-intro-script .prologue-line")
-      // ↑ ビュー側の <section id="..."> に合わせて必要なら変更
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数が無ければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（thief_intro）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-
-    // ★ グローバルキャッシュから URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl("thief_intro", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得
-        audio.src =
-          "/voices/thief_intro?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch(function (err) {
-        console.warn("play error:", err);
-        const btn = document.getElementById("thief-intro-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("thief-intro-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::THIEF_INTRO_LINES と対応させる
+      order: [
+        "narrator_1",
+        "fairy_1",
+        "narrator_2",
+        "narrator_3",
+        "thief_1",
+        "fairy_2",
+        "thief_leader_1",
+        "fairy_3",
+        "thief_leader_2",
+        "narrator_4"
+      ],
+      containerSelector: "#thief-intro-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#thief-intro-play",
+      basePath: "/voices/thief_intro"
+    });
   });
 </script>

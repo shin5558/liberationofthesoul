@@ -90,16 +90,13 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "ending_true_after";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このシーンのコンテナがなければ何もしない（別ページへの影響防止）
+    const container = document.getElementById("ending-true-step3-script");
+    if (!container) return;
 
     // ============================
-    // ★ BGM（そのまま）
+    // ★ BGM（ここは元のままの挙動）
     // ============================
     const bgm    = document.getElementById("ending-bgm");
     const bgmBtn = document.getElementById("ending-bgm-play");
@@ -119,116 +116,36 @@
     if (bgmBtn) {
       bgmBtn.addEventListener("click", function () {
         bgmBtn.style.display = "none";
-        bgm.play();
+        if (bgm) bgm.play();
       });
     }
 
     // ============================
-    // ★ ボイス再生（プリロード対応）
+    // ★ ボイス再生は共通プレイヤーに任せる
     // ============================
-
-    const order = [
-      "princess_5",
-      "narrator_5",
-      "fairy_4",
-      "narrator_6",
-      "narrator_7",
-      "fairy_5",
-      "narrator_8",
-      "fairy_6",
-      "narrator_9"
-    ];
-
-    const lineEls = {};
-    document
-      .querySelectorAll("#ending-true-step3-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking", "is-active");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking", "is-active");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（ending_true_step3）");
+      return;
     }
 
-    let currentIndex = -1;
-
-    const audioEl = document.getElementById("ending-true-step3-audio");
-    if (audioEl) {
-      audioEl.volume = 1.0;
-    }
-
-    // ============================
-    // ★ グローバル voiceCache を見る
-    // ============================
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    // ============================
-    // ★ メイン再生関数
-    // ============================
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // ending_true_after = SCENES 内のキー
-      const cached = getCachedUrl("ending_true_after", lineId);
-
-      if (cached) {
-        audioEl.src = cached;
-      } else {
-        audioEl.src =
-          "/voices/ending_true?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      const playPromise = audioEl.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function () {
-          const btn = document.getElementById("ending-true-step3-voice-play");
-          if (btn) btn.style.display = "inline-block";
-        });
-      }
-    }
-
-    if (audioEl) {
-      audioEl.addEventListener("ended", playNext);
-    }
-
-    const vbtn = document.getElementById("ending-true-step3-voice-play");
-    if (vbtn) {
-      vbtn.addEventListener("click", function () {
-        vbtn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ============================
-    // ★ 自動再生開始（プリロード済み前提）
-    // ============================
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    window.setupVoicePlayer({
+      // ★ SCENES.ending_true_after.lines と同じ順
+      order: [
+        "princess_5",
+        "narrator_5",
+        "fairy_4",
+        "narrator_6",
+        "narrator_7",
+        "fairy_5",
+        "narrator_8",
+        "fairy_6",
+        "narrator_9"
+      ],
+      containerSelector: "#ending-true-step3-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#ending-true-step3-voice-play",
+      // VoicesController#ending_true を叩く
+      basePath: "/voices/ending_true"
+    });
   });
 </script>

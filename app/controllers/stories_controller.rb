@@ -2,6 +2,8 @@ class StoriesController < ApplicationController
   require 'base64'
   require 'stringio'
 
+  before_action :disable_turbo
+
   # いまは view_screen だけ特別扱い
   before_action :require_player!, except: %i[view_screen]
   before_action :set_player_and_progress, except: %i[view_screen]
@@ -325,6 +327,10 @@ class StoriesController < ApplicationController
   # private メソッド
   # =========================
   private
+
+  def disable_turbo
+    request.format = :html
+  end
 
   # /screen 以外は必ずプレイヤーが必要
   def require_player!

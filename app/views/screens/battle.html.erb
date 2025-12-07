@@ -1,16 +1,18 @@
 <% content_for :body_class, "battle-view-only" %>
 
 <div class="story-view-wrapper">
-  <div class="story-view-bg title-bg">
-    <p style="color:#fff; font-size: 32px; text-align:center; margin-top: 40vh;">
-      （ここにバトル用の敵立ち絵 + 背景を出す）
-    </p>
+  <div class="story-view-bg"
+       style="background-image:url('<%= asset_path(@battle.enemy.background_asset) %>');">
+
+    <%# 敵立ち絵 %>
+    <img src="<%= asset_path(@battle.enemy.stand_image_asset) %>"
+         alt="<%= @battle.enemy.name %>"
+         class="enemy-stand-image">
   </div>
 </div>
 
 <script>
   (function() {
-    // いま開いている画面がどのモードか（初期値）
     var currentMode = "<%= session[:screen_mode].presence || 'title' %>";
 
     function pathForMode(mode) {
@@ -36,7 +38,6 @@
         const mode = (await res.text()).trim();
         if (!mode || mode === currentMode) return;
 
-        // モードが変わっていたら、対応する /screen/xxx に飛び直す
         currentMode = mode;
         window.location.href = pathForMode(mode);
       } catch (e) {
@@ -44,7 +45,6 @@
       }
     }
 
-    // 2秒ごとに確認（お好みで 1000〜3000ms に調整）
     setInterval(checkMode, 2000);
   })();
 </script>

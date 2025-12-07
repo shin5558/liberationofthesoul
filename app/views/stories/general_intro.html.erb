@@ -166,118 +166,48 @@
 <audio id="general-intro-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "general_intro";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない（他ページへの影響防止）
+    const container = document.getElementById("general-intro-script");
+    if (!container) return;
 
-    // ★ 再生順（SCENES.general_intro.lines と一致）
-    const order = [
-      "narrator_1",
-      "princess_1",
-      "fairy_1",
-      "princess_2",
-      "narrator_2",
-      "fairy_2",
-      "princess_3",
-      "narrator_3",
-      "fairy_3",
-      "princess_4",
-      "narrator_4",
-      "general_1",
-      "narrator_5",
-      "princess_5",
-      "general_2",
-      "narrator_6",
-      "general_3",
-      "princess_6",
-      "general_4",
-      "fairy_4",
-      "princess_7",
-      "narrator_7"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#general-intro-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach((el) => {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数がなければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（general_intro）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-    audio.volume = 1.0;
-
-    // ★ グローバルプリロードキャッシュから URL を取る
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // プリロード済みのものを最優先で使う
-      const cached = getCachedUrl("general_intro", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // プリロードがまだなら、その場で取得
-        audio.src =
-          "/voices/general_intro?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch((err) => {
-        console.warn("general_intro play error:", err);
-        const btn = document.getElementById("general-intro-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("general-intro-play");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生トライ
-    setTimeout(() => {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::GENERAL_INTRO_LINES と同じ順番
+      order: [
+        "narrator_1",
+        "princess_1",
+        "fairy_1",
+        "princess_2",
+        "narrator_2",
+        "fairy_2",
+        "princess_3",
+        "narrator_3",
+        "fairy_3",
+        "princess_4",
+        "narrator_4",
+        "general_1",
+        "narrator_5",
+        "princess_5",
+        "general_2",
+        "narrator_6",
+        "general_3",
+        "princess_6",
+        "general_4",
+        "fairy_4",
+        "princess_7",
+        "narrator_7"
+      ],
+      containerSelector: "#general-intro-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#general-intro-play",
+      basePath: "/voices/general_intro"
+    });
   });
 </script>

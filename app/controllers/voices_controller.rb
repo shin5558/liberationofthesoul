@@ -3,6 +3,8 @@ class VoicesController < ApplicationController
   require 'net/http'
   require 'uri'
   require 'json'
+  require 'digest'
+  require 'fileutils'
 
   # VOICEVOX サーバー（必要なら 127.0.0.1:50021 を変えてね）
   STYLEBERT_HOST = ENV.fetch('STYLEBERT_HOST', 'http://127.0.0.1:5000')
@@ -183,7 +185,7 @@ class VoicesController < ApplicationController
       'バイバーイ！ ……ふう、なんとか一件落着だね。'
     },
     'narrator_7' => lambda { |name|
-      '残されたのは、静けさと、倒れた盗賊たち、そして新しく手に入れたカードだけ。森の奥から吹き抜けた風が、あなたたちの背中をそっと押す。こうして、もぐら盗賊団との一件は幕を閉じ、次の物語へと歩みを進めていく――。'
+      '残されたのは、静けさと、倒れた盗賊たち、そして新しく手に入れたカードだけ。森の奥から吹き抜けた風が、あなたたちの背中をそっと押す。'
     }
   }.freeze
 
@@ -869,94 +871,113 @@ class VoicesController < ApplicationController
   # ===== アクション =====
 
   def prologue
-    speak_from_hash(PROLOGUE_LINES)
+    speak_from_hash_cached('prologue', PROLOGUE_LINES)
   end
 
   def branch1
-    speak_from_hash(BRANCH1_LINES)
+    speak_from_hash_cached('branch1', BRANCH1_LINES)
   end
 
   def goblin_intro
-    speak_from_hash(GOBLIN_INTRO_LINES)
+    speak_from_hash_cached('goblin_intro', GOBLIN_INTRO_LINES)
   end
 
   def thief_intro
-    speak_from_hash(THIEF_INTRO_LINES)
+    speak_from_hash_cached('thief_intro', THIEF_INTRO_LINES)
   end
 
   def after_goblin
-    speak_from_hash(AFTER_GOBLIN_LINES)
+    speak_from_hash_cached('after_goblin', AFTER_GOBLIN_LINES)
   end
 
   def after_thief
-    speak_from_hash(AFTER_THIEF_LINES)
+    speak_from_hash_cached('after_thief', AFTER_THIEF_LINES)
   end
 
   def branch2
-    speak_from_hash(BRANCH2_LINES)
+    speak_from_hash_cached('branch2', BRANCH2_LINES)
   end
 
   def gatekeeper_intro
-    speak_from_hash(GATEKEEPER_INTRO_LINES)
+    speak_from_hash_cached('gatekeeper_intro', GATEKEEPER_INTRO_LINES)
   end
 
   def princess_meeting
-    speak_from_hash(PRINCESS_MEETING_LINES)
+    speak_from_hash_cached('princess_meeting', PRINCESS_MEETING_LINES)
   end
 
   def general_intro
-    speak_from_hash(GENERAL_INTRO_LINES)
+    speak_from_hash_cached('general_intro', GENERAL_INTRO_LINES)
   end
 
   def gatekeeper_from_princess
-    speak_from_hash(GATEKEEPER_FROM_PRINCESS_LINES)
+    speak_from_hash_cached('gatekeeper_from_princess', GATEKEEPER_FROM_PRINCESS_LINES)
   end
 
   def after_gatekeeper
-    speak_from_hash(AFTER_GATEKEEPER_LINES)
+    speak_from_hash_cached('after_gatekeeper', AFTER_GATEKEEPER_LINES)
   end
 
   def after_general
-    speak_from_hash(AFTER_GENERAL_LINES)
+    speak_from_hash_cached('after_general', AFTER_GENERAL_LINES)
   end
 
   def warehouse_gate
-    speak_from_hash(WAREHOUSE_GATEKEEPER_LINES)
+    speak_from_hash_cached('warehouse_gate', WAREHOUSE_GATEKEEPER_LINES)
   end
 
   def warehouse_general
-    speak_from_hash(WAREHOUSE_GENERAL_LINES)
+    speak_from_hash_cached('warehouse_general', WAREHOUSE_GENERAL_LINES)
   end
 
   def demonlord_intro
-    speak_from_hash(DEMONLORD_INTRO_LINES)
+    speak_from_hash_cached('demonlord_intro', DEMONLORD_INTRO_LINES)
   end
 
   def ending_bad
-    speak_from_hash(ENDING_BAD_LINES)
+    speak_from_hash_cached('ending_bad', ENDING_BAD_LINES)
   end
 
   def ending_normal
-    speak_from_hash(ENDING_NORMAL_LINES)
+    speak_from_hash_cached('ending_normal', ENDING_NORMAL_LINES)
   end
 
   def ending_true
-    speak_from_hash(ENDING_TRUE_LINES)
+    speak_from_hash_cached('ending_true', ENDING_TRUE_LINES)
   end
 
   private
 
-  def speak_from_hash(lines_hash)
-    key = params[:line].to_s
+  def speak_from_hash_cached(scene_key, lines_hash)
+    line_key = params[:line].to_s
+
+    builder =
+      lines_hash[line_key] ||
+      lines_hash[line_key.to_sym]
+
+    if builder.nil?
+      head :bad_request
+      return
+    end
 
     player = current_player
+    name   = player&.name_kana.presence || 'あなた'
 
-    name = player&.name_kana.presence || 'あなた'
+    text = builder.call(name)
 
-    builder = lines_hash[key]
+    send_cached_voice(scene_key, line_key, text)
+  end
+
+  def speak_from_hash(lines_hash)
+    line_key = params[:line].to_s
+
+    player = current_player
+    name   = player&.name_kana.presence || 'あなた'
+
+    builder = lines_hash[line_key]
     text    = builder ? builder.call(name) : '……。'
 
-    voice_opts = speaker_for(key)
+    voice_opts = speaker_for(line_key)
     wav        = synthesize(text, voice_opts)
 
     send_data wav, type: 'audio/wav', disposition: 'inline'
@@ -992,20 +1013,20 @@ class VoicesController < ApplicationController
     end
   end
 
-  def synthesize(text, speaker)
-    # speaker は今のところ使わないけど、既存の呼び出しと合わせて引数だけ残しておく
+  def synthesize(text, speaker = nil)
+    # speaker は今のところ使わないけど、
+    # 既存の呼び出しと合わせて引数だけ残しておく
 
     uri = URI("#{STYLEBERT_HOST}/voice")
 
     params = {
       text: text,
-      model_name: 'amitaro', # server_editor で試したモデル名
-      speaker_name: 'あみたろ', # docs の speaker_name と同じ
+      model_name: 'amitaro',
+      speaker_name: 'あみたろ',
       style: 'Neutral',
       language: 'JP',
       auto_split: true,
       split_interval: 0.1
-      # 必要なら style_weight や length もここに追加できる
     }
 
     uri.query = URI.encode_www_form(params)
@@ -1014,5 +1035,31 @@ class VoicesController < ApplicationController
     raise "Style-Bert TTS failed: #{res.code} #{res.body}" unless res.is_a?(Net::HTTPSuccess)
 
     res.body # audio/wav のバイナリ
+  end
+
+  # ================================
+  # ★ 共通キャッシュ付き再生メソッド
+  # ================================
+  def send_cached_voice(scene_key, line_key, text)
+    # text（＝プレイヤー名入り）からハッシュを作る
+    digest   = Digest::SHA256.hexdigest(text)[0, 16]
+
+    # 例: storage/voices/prologue/narrator_1_xxxxxxxx.wav
+    dir_path = Rails.root.join('storage', 'voices', scene_key)
+    FileUtils.mkdir_p(dir_path)
+
+    file_path = dir_path.join("#{line_key}_#{digest}.wav")
+
+    if File.exist?(file_path)
+      # すでに生成済みならファイルをそのまま返す（超速）
+      send_file file_path, type: 'audio/wav', disposition: 'inline'
+    else
+      # 行ごとの話者設定を反映
+      voice_opts = speaker_for(line_key)
+      wav_binary = synthesize(text, voice_opts)
+
+      File.binwrite(file_path, wav_binary)
+      send_data wav_binary, type: 'audio/wav', disposition: 'inline'
+    end
   end
 end

@@ -192,7 +192,10 @@ story_enemies = [
     base_hp: 5,
     boss: false,
     element: neutral,
-    description: '街道沿いに現れる小柄なゴブリン'
+    description: '街道沿いに現れる小柄なゴブリン',
+    background_asset: 'battle_bg_forest.png', # 森の背景
+    battle_bgm_asset: 'bgm_goblin.mp3', # ゴブリン用BGM
+    stand_image_asset: 'enemy_goblin_stand.png'
   },
   {
     name: 'Thief',
@@ -200,7 +203,10 @@ story_enemies = [
     base_hp: 5,
     boss: false,
     element: neutral,
-    description: '旅人を襲う悪名高い盗賊'
+    description: '旅人を襲う悪名高い盗賊',
+    background_asset: 'battle_bg_road.png',         # 街道っぽい背景
+    battle_bgm_asset: 'bgm_thief.mp3',
+    stand_image_asset: 'enemy_thief_stand.png'
   },
   {
     name: 'Gatekeeper',
@@ -208,7 +214,10 @@ story_enemies = [
     base_hp: 5,
     boss: false,
     element: earth,
-    description: '城門を守る屈強な門番'
+    description: '城門を守る屈強な門番',
+    background_asset: 'battle_bg_castle_gate.png',  # 城門前
+    battle_bgm_asset: 'bgm_gatekeeper.mp3',
+    stand_image_asset: 'enemy_gatekeeper_stand.png'
   },
   {
     name: 'General',
@@ -216,7 +225,10 @@ story_enemies = [
     base_hp: 5,
     boss: false,
     element: fire,
-    description: '王国最強と名高い将軍（真エンディング条件2）'
+    description: '王国最強と名高い将軍（真エンディング条件2）',
+    background_asset: 'battle_bg_throne_hall.png',  # 玉座の間っぽい
+    battle_bgm_asset: 'bgm_general.mp3',
+    stand_image_asset: 'enemy_general_stand.png'
   },
   {
     name: 'Demon Lord',
@@ -224,18 +236,24 @@ story_enemies = [
     base_hp: 5,
     boss: true,
     element: dark,
-    description: '魔王。全ての戦いの頂点に立つ存在'
+    description: '魔王。全ての戦いの頂点に立つ存在',
+    background_asset: 'battle_bg_demon_castle.png', # 魔王城
+    battle_bgm_asset: 'bgm_demonlord.mp3',
+    stand_image_asset: 'enemy_demonlord_stand.png'
   }
 ]
 
 story_enemies.each do |attrs|
   enemy = Enemy.find_or_initialize_by(code: attrs[:code])
-  enemy.name        = attrs[:name]
-  enemy.base_hp     = attrs[:base_hp]
-  enemy.boss        = attrs[:boss]
-  enemy.element     = attrs[:element]
-  enemy.description = attrs[:description]
-  enemy.flags     ||= {}
+  enemy.name              = attrs[:name]
+  enemy.base_hp           = attrs[:base_hp]
+  enemy.boss              = attrs[:boss]
+  enemy.element           = attrs[:element]
+  enemy.description       = attrs[:description]
+  enemy.background_asset  = attrs[:background_asset]
+  enemy.battle_bgm_asset  = attrs[:battle_bgm_asset]
+  enemy.stand_image_asset = attrs[:stand_image_asset]
+  enemy.flags           ||= {}
   enemy.save!
   puts "✓ #{enemy.name} (#{enemy.code}) registered/updated"
 end

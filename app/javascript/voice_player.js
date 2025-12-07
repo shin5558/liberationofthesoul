@@ -1,17 +1,39 @@
 // app/javascript/voice_player.js
 
+// 🔸 今鳴っているストーリー用 Audio をグローバルで保持
+window.currentStoryAudio = window.currentStoryAudio || null;
+
+// 🔸 どこからでも呼べる「ストーリー音声を止める」関数
+window.stopStoryVoices = function stopStoryVoices() {
+  const audio = window.currentStoryAudio;
+  if (!audio) return;
+
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.removeAttribute("src");
+  } catch (e) {
+    console.warn("stopStoryVoices 失敗:", e);
+  }
+};
+
 // グローバルに公開して、どのビューからも使えるようにする
 window.setupVoicePlayer = function setupVoicePlayer(options) {
   const {
     order,                // ["narrator_1", "narrator_2", ...]
     containerSelector,    // "#prologue-script" など
-    lineSelector,         // ".prologue-line" / ".branch1-line" などビューごと
+    lineSelector,         // ".prologue-line" / ".branch1-line" など
     playButtonSelector,   // "#prologue-play" など（任意）
     basePath              // "/voices/prologue" など
   } = options;
 
   const container = document.querySelector(containerSelector);
   if (!container) return;
+
+  // 🔹 ページが変わるたびに「前のシーンの音声」をいったん止める
+  if (window.stopStoryVoices) {
+    window.stopStoryVoices();
+  }
 
   // セリフDOMを集める
   const lineEls = {};
@@ -22,17 +44,28 @@ window.setupVoicePlayer = function setupVoicePlayer(options) {
 
   function setActive(lineId) {
     Object.values(lineEls).forEach((el) => {
-      el.classList.remove("is-speaking");
+      el.classList.remove("is-speaking", "is-active");
     });
     if (lineId && lineEls[lineId]) {
       const el = lineEls[lineId];
-      el.classList.add("is-speaking");
+      el.classList.add("is-speaking", "is-active");
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 
   let currentIndex = -1;
-  const audio = new Audio();
+
+  // 🔹 「ストーリー専用 Audio」を 1 台だけ使い回す
+  const audio = window.currentStoryAudio || new Audio();
+  window.currentStoryAudio = audio;
+
+  // 念のため初期化
+  try {
+    audio.pause();
+  } catch (e) {}
+  audio.currentTime = 0;
+  audio.onended = null; // 古いハンドラを消す
+
   const voiceCache = {};
 
   function preloadVoice(lineId) {
@@ -92,7 +125,10 @@ window.setupVoicePlayer = function setupVoicePlayer(options) {
     }
   }
 
-  audio.addEventListener("ended", playNext);
+  // 🔹 ended は addEventListener ではなく onended で上書き
+  audio.onended = function () {
+    playNext();
+  };
 
   const btn = playButtonSelector
     ? document.querySelector(playButtonSelector)
@@ -105,7 +141,7 @@ window.setupVoicePlayer = function setupVoicePlayer(options) {
     });
   }
 
-  // 1行目だけプリロード → 終わったら再生開始
+  // 1行目だけプリロード → 再生開始
   if (order && order.length > 0) {
     preloadVoice(order[0]).then(() => {
       currentIndex = -1;

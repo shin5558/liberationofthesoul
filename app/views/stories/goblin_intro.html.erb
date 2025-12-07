@@ -1,134 +1,71 @@
 <h1>ゴブリンとの遭遇</h1>
 
-<div class="story-text-block">
-  <p class="story-line is-narrator js-line" data-line-id="narrator_1">
+<section id="goblin-intro-script" class="story-text-block">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_1">
     あなたは、まず目の前の脅威に集中することにした。森の奥の声は気になるが、倒れた馬車とゴブリンたちを放置しておくわけにもいかない。
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_1">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_1">
     「分かった。まずはこのゴブリンたちから片付けよう。あの馬車の人たちが無事かどうか、気になるしね。」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_2">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_2">
     足音を殺し、ゴブリンたちとの距離を少しずつ詰めていく。しかし、やがて彼らもこちらの存在に気づき、ぎょろりとした目を向けてきた。
   </p>
 
-  <p class="story-line is-goblin js-line" data-line-id="goblin_1">
+  <p class="prologue-line story-line is-goblin js-line" data-line-id="goblin_1">
     「ゲリャッ、ゲリャッ！！」
   </p>
 
-  <p class="story-line is-fairy js-line" data-line-id="fairy_2">
+  <p class="prologue-line story-line is-fairy js-line" data-line-id="fairy_2">
     「流石にここまで近づいたら、気づいたみたい。気をつけてね、あの子たち、集団で来ると結構やっかいだから。」
   </p>
 
-  <p class="story-line is-narrator js-line" data-line-id="narrator_3">
+  <p class="prologue-line story-line is-narrator js-line" data-line-id="narrator_3">
     ゴブリンたちは歯をむき出しにしながら武器を振り上げ、一斉に飛びかかってくる。ここから――最初の本格的な戦いが始まる。
   </p>
-</div>
+</section>
 
 <hr>
 
 <p>「ゴブリン達との戦闘に入る」</p>
 <%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "goblin"), class: "btn" %>
 
-<audio id="scene-audio"></audio>
+<div style="margin-top: 16px;">
+  <button id="goblin-intro-play" class="btn" style="display:none;">
+    ▶ 音声が再生されないときはこちらをクリック
+  </button>
+</div>
+
+<audio id="goblin-intro-audio" style="display:none;"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // ★ 再生順（SCENES.goblin_intro.lines と同じ順）
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "goblin_intro";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない
+    const container = document.getElementById("goblin-intro-script");
+    if (!container) return;
 
-    const order = [
-      "narrator_1",
-      "fairy_1",
-      "narrator_2",
-      "goblin_1",
-      "fairy_2",
-      "narrator_3"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#goblin-intro-script .prologue-line")
-      // ↑ あなたのビューの <section id="..."> に合わせて必要なら変更
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数が無ければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（goblin_intro）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-
-    // ★ グローバルキャッシュから URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl("goblin_intro", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得
-        audio.src =
-          "/voices/goblin_intro?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch(function (err) {
-        console.warn("play error:", err);
-        const btn = document.getElementById("goblin-intro-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("goblin-intro-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::GOBLIN_INTRO_LINES に合わせる
+      order: [
+        "narrator_1",
+        "fairy_1",
+        "narrator_2",
+        "goblin_1",
+        "fairy_2",
+        "narrator_3"
+      ],
+      containerSelector: "#goblin-intro-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#goblin-intro-play",  // 自動再生ブロック時のボタン
+      basePath: "/voices/goblin_intro"
+    });
   });
 </script>

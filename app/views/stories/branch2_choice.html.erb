@@ -92,109 +92,39 @@
 <audio id="branch2-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "branch2_choice";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない（他ページへの影響防止）
+    const container = document.getElementById("branch2-choice-script");
+    if (!container) return;
 
-
-    // ★ 再生順（プリロード設定 SCENES.branch2_choice.lines と一致）
-    const order = [
-      "fairy_1",
-      "fairy_2",
-      "fairy_3",
-      "unknown_1",
-      "fairy_4",
-      "narrator_1",
-      "unknown_2",
-      "fairy_5",
-      "fairy_6",
-      "unknown_3",
-      "narrator_2"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#branch2-choice-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach((el) => {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数が無ければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（branch2_choice）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-    audio.volume = 1.0;
-
-    // ★ グローバルキャッシュから取り出すヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // プリロード済みなら即使用
-      const cached = getCachedUrl("branch2_choice", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードが間に合ってない場合の保険
-        audio.src =
-          "/voices/branch2?line=" +         // ★ここを branch2 に修正
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch((err) => {
-        console.warn("branch2_choice play error:", err);
-        const btn = document.getElementById("branch2-choice-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    // 手動再生ボタン
-    const btn = document.getElementById("branch2-choice-play");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生トライ
-    setTimeout(() => {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::BRANCH2_LINES と同じ順にする
+      order: [
+        "fairy_1",
+        "fairy_2",
+        "fairy_3",
+        "unknown_1",
+        "fairy_4",
+        "narrator_1",
+        "unknown_2",
+        "fairy_5",
+        "fairy_6",
+        "unknown_3",
+        "narrator_2"
+      ],
+      containerSelector: "#branch2-choice-script",
+      lineSelector: ".prologue-line",
+      // ★ 再生ボタンの id はビュー側に合わせて「branch2-play」
+      playButtonSelector: "#branch2-play",
+      // ★ VoicesController#branch2 に合わせる
+      basePath: "/voices/branch2"
+    });
   });
 </script>

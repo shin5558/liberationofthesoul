@@ -1,86 +1,99 @@
-<h1>リザルト</h1>
+<turbo-frame id="battle-board" data-battle-result="true">
+  <h1>リザルト</h1>
 
-<%# ====== 勝敗表示 ====== %>
-<% if @battle.won? %>
-  <p style="color: green; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
-    🎉 勝利！敵を倒しました！
-  </p>
-<% elsif @battle.lost? %>
-  <p style="color: red; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
-    💀 敗北…力尽きてしまった…
-  </p>
-<% else %>
-  <p style="font-size:1.2rem; margin-bottom:8px;">
-    バトルはまだ継続中です。（この画面には本来来ない想定）
-  </p>
-<% end %>
-
-<hr>
-
-<div style="margin:16px 0;">
-  <p>プレイヤー: <strong><%= @battle.player.name %></strong></p>
-  <p>敵: <strong><%= @battle.enemy.name %></strong></p>
-</div>
-
-<div style="margin:16px 0; padding:12px; border:1px solid #ddd; border-radius:8px;">
-  <p>ターン数: <strong><%= @turns_count %> ターン</strong></p>
-  <p>
-    最終HP:
-    あなた <strong><%= @battle.player_hp %></strong> / <%= @battle.player_max_hp %> ,
-    敵 <strong><%= @battle.enemy_hp %></strong> / <%= @battle.enemy_max_hp %>
-  </p>
-</div>
-
-<%# ざっくりした一言コメント（おまけ） %>
-<div style="margin:16px 0;">
+  <%# ====== 勝敗表示 ====== %>
   <% if @battle.won? %>
-    <p>いい感じ！ 次はもっと高ダメージのカードや戦略も試してみましょう。</p>
+    <p style="color: green; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
+      🎉 勝利！敵を倒しました！
+    </p>
   <% elsif @battle.lost? %>
-    <p>ここで終わりじゃない。物語の続きは、別のかたちで待っている…。</p>
-  <% end %>
-</div>
-
-<hr style="margin:20px 0;">
-
-<%# ====== ストーリーへの分岐リンク ====== %>
-<% if @battle.won? %>
-  <% case @battle.enemy.code %>
-  <% when "goblin" %>
-    <%= link_to "物語を進める（馬車の救出へ）",
-                after_goblin_story_path,
-                class: "btn" %>
-
-  <% when "thief" %>
-    <%= link_to "物語を進める（被害者を助けに行く）",
-                after_thief_story_path,
-                class: "btn" %>
-
-  <% when "gatekeeper" %>
-    <%= link_to "物語を進める（門番戦の後）",
-                after_gatekeeper_story_path,
-                class: "btn" %>
-
-  <% when "general" %>
-    <%= link_to "物語を進める（魔姫と倉庫へ）",
-                after_general_story_path,
-                class: "btn" %>
-
-  <% when "demonlord" %>
-    <%= link_to "エンディングへ進む",
-                ending_story_path,
-                class: "btn" %>
-
+    <p style="color: red; font-size:1.4rem; font-weight:700; margin-bottom:8px;">
+      💀 敗北…力尽きてしまった…
+    </p>
   <% else %>
-    <%# 想定外の敵コードだったときの保険 %>
-    <%= link_to "物語に戻る",
-                prologue_story_path,
-                class: "btn" %>
+    <p style="font-size:1.2rem; margin-bottom:8px;">
+      バトルはまだ継続中です。（この画面には本来来ない想定）
+    </p>
   <% end %>
 
-<% elsif @battle.lost? %>
-  <%# ★ 敗北時：ゲームオーバーシナリオへ %>
-  <%= link_to "ゲームオーバーの物語へ",
-              game_over_story_path,
-              class: "btn" %>
+  <%# ====== 戦闘ログの一覧 ====== %>
+  <section style="margin: 16px 0;">
+    <h2 style="font-size:1.2rem; margin-bottom:8px;">戦闘の記録</h2>
 
-<% end %>
+    <% if @battle_logs.present? %>
+      <ol style="padding-left: 1.5rem;">
+        <% @battle_logs.each do |log| %>
+          <li style="margin-bottom:4px;">
+            <%= log.message %>
+          </li>
+        <% end %>
+      </ol>
+    <% else %>
+      <p>戦闘ログはありません。</p>
+    <% end %>
+  </section>
+
+  <%# ====== 次に進むリンク ====== %>
+  <section style="margin-top: 24px;">
+    <% if @battle.won? %>
+      <%# ★ ここで flags から enemy_code を取り出す %>
+      <% enemy_code = @battle.flags && @battle.flags["enemy_code"] %>
+
+      <%# ★ 勝利時：敵ごとに遷移先の物語を変える %>
+      <% case enemy_code %>
+      <% when "goblin" %>
+        <%= link_to "物語を進める（ゴブリン戦後のイベントへ）",
+                    after_goblin_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+
+      <% when "thief" %>
+        <%= link_to "物語を進める（盗賊戦後のイベントへ）",
+                    after_thief_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+
+      <% when "gatekeeper" %>
+        <%= link_to "物語を進める（門番戦後のイベントへ）",
+                    after_gatekeeper_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+
+      <% when "general" %>
+        <%= link_to "物語を進める（魔姫と倉庫へ）",
+                    after_general_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+
+      <% when "demonlord" %>
+        <%= link_to "エンディングへ進む",
+                    ending_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+
+      <% else %>
+        <%# 想定外の enemy_code のときの保険 %>
+        <%= link_to "物語に戻る",
+                    prologue_story_path,
+                    class: "btn",
+                    data: { turbo_frame: "_top" } %>
+      <% end %>
+
+    <% elsif @battle.lost? %>
+      <%# ★ 敗北時：ゲームオーバーシナリオへ %>
+      <%= link_to "ゲームオーバーの物語へ",
+                  game_over_story_path,
+                  class: "btn",
+                  data: { turbo_frame: "_top" } %>
+    <% end %>
+  </section>
+</turbo-frame>
+
+<script>
+  // フレーム差し替え直後に即 BGM を止める
+  (function () {
+    if (window.stopBattleBgm) {
+      window.stopBattleBgm();
+    }
+  })();
+</script>

@@ -44,94 +44,25 @@
 <audio id="warehouse-gate-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "warehouse_gate";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このシーン用のコンテナが無ければ何もしない（他ページへの影響防止）
+    const container = document.getElementById("warehouse-gate-script");
+    if (!container) return;
 
-    // ★ 再生順（倉庫イベント・門番ルート）
-    const order = ["fairy_1", "fairy_2", "narrator_1", "fairy_3"];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#warehouse-gate-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking", "is-active");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking", "is-active");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数が無ければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（warehouse_gate）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-    audio.volume = 1.0; // セリフは前に
-
-    // ★ グローバルキャッシュから URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl("warehouse_gate", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得
-        audio.src =
-          "/voices/warehouse_gate?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch(function (err) {
-        console.warn("warehouse_gate play error:", err);
-        const btn = document.getElementById("warehouse-gate-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("warehouse-gate-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生を試みる
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController の 倉庫イベント（門番ルート） と同じ順番
+      order: ["fairy_1", "fairy_2", "narrator_1", "fairy_3"],
+      containerSelector: "#warehouse-gate-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#warehouse-gate-play",
+      basePath: "/voices/warehouse_gate"
+    });
   });
 </script>

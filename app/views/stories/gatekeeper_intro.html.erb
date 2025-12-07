@@ -69,105 +69,36 @@
 <audio id="gatekeeper-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "gatekeeper_intro";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない（他ページへの影響防止）
+    const container = document.getElementById("gatekeeper-intro-script");
+    if (!container) return;
 
-
-    // ★ 再生順（プリロード設定 SCENES.gatekeeper_intro.lines と一致させる）
-    const order = [
-      "narrator_1",
-      "gatekeeper_1",
-      "fairy_1",
-      "gatekeeper_2",
-      "fairy_2",
-      "gatekeeper_3",
-      "fairy_3",
-      "narrator_2"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#gatekeeper-intro-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach((el) => {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通セットアップ関数がなければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（gatekeeper_intro）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-    audio.volume = 1.0;
-
-    // ★ グローバルキャッシュから取り出すヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // プリロード済みなら即利用
-      const cached = getCachedUrl("gatekeeper_intro", lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // プリロードが間に合っていないときの保険
-        audio.src =
-          "/voices/gatekeeper_intro?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch((err) => {
-        console.warn("gatekeeper_intro play error:", err);
-        const btn = document.getElementById("gatekeeper-intro-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("gatekeeper-intro-play");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ページ表示後に自動再生トライ
-    setTimeout(() => {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通ボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController::GATEKEEPER_INTRO_LINES と同じ順にする
+      order: [
+        "narrator_1",
+        "gatekeeper_1",
+        "fairy_1",
+        "gatekeeper_2",
+        "fairy_2",
+        "gatekeeper_3",
+        "fairy_3",
+        "narrator_2"
+      ],
+      containerSelector: "#gatekeeper-intro-script",
+      lineSelector: ".prologue-line",
+      // 再生ボタンの id に合わせておく
+      // （HTML 側が <button id="gatekeeper-play"> ならこれでOK）
+      playButtonSelector: "#gatekeeper-play",
+      basePath: "/voices/gatekeeper_intro"
+    });
   });
 </script>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_26_050525) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_06_093832) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -154,6 +154,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_26_050525) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "code"
+    t.string "background_asset"
+    t.string "battle_bgm_asset"
+    t.string "stand_image_asset"
     t.index ["code"], name: "index_enemies_on_code", unique: true
     t.index ["element_id"], name: "index_enemies_on_element_id"
   end

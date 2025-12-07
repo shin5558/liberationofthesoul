@@ -40,135 +40,27 @@
   </button>
 </div>
 
-<audio id="prologue-audio" style="display:none;"></audio> <%# ←残してもいいけど使わない %>
+<audio id="prologue-audio" style="display:none;"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "prologue";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このページじゃなければ何もしない
+    const container = document.getElementById("prologue-script");
+    if (!container) return;
 
-    // 再生順
-    const order = ["narrator_1", "narrator_2", "fairy_1", "fairy_2"];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#prologue-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // グローバルのセットアップ関数が無ければ諦める
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません");
+      return;
     }
 
-    let currentIndex = -1;
-    const audio = new Audio();
-
-    // ★ 1行分をプリロードして cache に入れる
-    function preloadVoice(lineId) {
-      if (sceneCache[lineId]) {
-        // すでにプリロード済みなら何もしない
-        return Promise.resolve();
-      }
-
-      const url =
-        "/voices/prologue?line=" +
-        encodeURIComponent(lineId) +
-        "&t=" +
-        Date.now();
-
-      return fetch(url)
-        .then(function (res) { return res.arrayBuffer(); })
-        .then(function (buf) {
-          const blob = new Blob([buf], { type: "audio/wav" });
-          const objectUrl = URL.createObjectURL(blob);
-          sceneCache[lineId] = objectUrl;
-        })
-        .catch(function (err) {
-          console.warn("preload error (prologue):", lineId, err);
-        });
-    }
-
-    // ★ このシーンの全行を先にプリロード（行間を詰める本体）
-    function preloadAllLines() {
-      return Promise.all(order.map(preloadVoice));
-    }
-
-    // ★ グローバルキャッシュから URL を取るヘルパー（元の形を維持）
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sc = window.voiceCache[sceneKey];
-      if (!sc) return null;
-      return sc[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずはプリロード済みキャッシュを参照
-      const cached = getCachedUrl(SCENE_KEY, lineId);
-      if (cached) {
-        audio.src = cached;
-      } else {
-        // 万が一プリロードがまだなら、その場で取得（保険）
-        audio.src =
-          "/voices/prologue?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      audio.play().catch(function (err) {
-        console.warn("play error:", err);
-        const btn = document.getElementById("prologue-play");
-        if (btn) btn.style.display = "inline-block";
-      });
-    }
-
-    audio.addEventListener("ended", playNext);
-
-    const btn = document.getElementById("prologue-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // ==== ここが一番大事 ====
-    // 1) 全行プリロード完了を待つ
-    // 2) 終わったら 1 行目から連続再生開始
-    preloadAllLines().then(function () {
-      currentIndex = -1;
-      playNext();
-    }).catch(function (err) {
-      console.warn("preloadAllLines error:", err);
-      // 失敗したときは今まで通りタイマーで開始
-      setTimeout(function () {
-        currentIndex = -1;
-        playNext();
-      }, 500);
+    // 共通のボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      order: ["narrator_1", "narrator_2", "fairy_1", "fairy_2"],
+      containerSelector: "#prologue-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#prologue-play",
+      basePath: "/voices/prologue"
     });
   });
 </script>

@@ -85,110 +85,35 @@
 <audio id="ending-normal-audio"></audio>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-        // ==== ここだけ追加・重要 ====
-    const SCENE_KEY = "ending_normal";
-    if (!window.voiceCache) window.voiceCache = {};
-    if (!window.voiceCache[SCENE_KEY]) window.voiceCache[SCENE_KEY] = {};
-    const sceneCache = window.voiceCache[SCENE_KEY];
-    // ============================
+  document.addEventListener("turbo:load", function () {
+    // このシーンのコンテナがなければ何もしない（別ページへの影響防止）
+    const container = document.getElementById("ending-normal-script");
+    if (!container) return;
 
-    // ★ 再生順（SCENES.ending_normal.lines と同じ）
-    const order = [
-      "narrator_1",
-      "fairy_1",
-      "fairy_2",
-      "fairy_3",
-      "narrator_2",
-      "narrator_3",
-      "narrator_4",
-      "fairy_4",
-      "narrator_5"
-    ];
-
-    // DOM 要素を保持
-    const lineEls = {};
-    document
-      .querySelectorAll("#ending-normal-script .prologue-line")
-      .forEach(function (el) {
-        const id = el.dataset.lineId;
-        if (id) lineEls[id] = el;
-      });
-
-    function setActive(lineId) {
-      Object.values(lineEls).forEach(function (el) {
-        el.classList.remove("is-speaking", "is-active");
-      });
-      if (lineId && lineEls[lineId]) {
-        const el = lineEls[lineId];
-        el.classList.add("is-speaking", "is-active");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    // 共通プレイヤーが読み込まれているか確認
+    if (!window.setupVoicePlayer) {
+      console.error("setupVoicePlayer が見つかりません（ending_normal）");
+      return;
     }
 
-    let currentIndex = -1;
-    const audioEl = document.getElementById("ending-normal-audio");
-    if (audioEl) {
-      audioEl.volume = 1.0;
-    }
-
-    // ★ グローバル voiceCache から URL を取るヘルパー
-    function getCachedUrl(sceneKey, lineId) {
-      if (!window.voiceCache) return null;
-      const sceneCache = window.voiceCache[sceneKey];
-      if (!sceneCache) return null;
-      return sceneCache[lineId] || null;
-    }
-
-    function playNext() {
-      currentIndex += 1;
-      if (currentIndex >= order.length) {
-        setActive(null);
-        return;
-      }
-
-      const lineId = order[currentIndex];
-      setActive(lineId);
-
-      // まずプリロード済みキャッシュを参照
-      const cached = getCachedUrl("ending_normal", lineId);
-      if (cached) {
-        audioEl.src = cached;
-      } else {
-        // プリロードが間に合っていないときの保険
-        audioEl.src =
-          "/voices/ending_normal?line=" +
-          encodeURIComponent(lineId) +
-          "&t=" +
-          Date.now();
-      }
-
-      const playPromise = audioEl.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function () {
-          const btn = document.getElementById("ending-normal-play");
-          if (btn) btn.style.display = "inline-block";
-        });
-      }
-    }
-
-    if (audioEl) {
-      audioEl.addEventListener("ended", playNext);
-    }
-
-    const btn = document.getElementById("ending-normal-play");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        btn.style.display = "none";
-        currentIndex = -1;
-        playNext();
-      });
-    }
-
-    // 自動再生トライ
-    setTimeout(function () {
-      currentIndex = -1;
-      playNext();
-    }, 500);
+    // 共通のボイスプレイヤーを起動
+    window.setupVoicePlayer({
+      // ★ VoicesController 側の SCENES[:ending_normal][:lines] と同じ順番にする
+      order: [
+        "narrator_1",
+        "fairy_1",
+        "fairy_2",
+        "fairy_3",
+        "narrator_2",
+        "narrator_3",
+        "narrator_4",
+        "fairy_4",
+        "narrator_5"
+      ],
+      containerSelector: "#ending-normal-script",
+      lineSelector: ".prologue-line",
+      playButtonSelector: "#ending-normal-play",
+      basePath: "/voices/ending_normal"
+    });
   });
 </script>
