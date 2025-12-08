@@ -282,6 +282,7 @@ class StoriesController < ApplicationController
 
   def demonlord_intro
     session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'demonlord_intro')
   end
 
   def ending
@@ -315,11 +316,13 @@ class StoriesController < ApplicationController
 
   def ending_true_message
     session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'ending_true_message') if @progress
     # ここで「最後の言葉」を入力する画面
   end
 
   def ending_true_after
     session[:screen_mode] = 'story'
+    @progress.update!(current_step: 'ending_true_after') if @progress
     # 魔姫が旅立ち、エンディングテーマが流れる画面
   end
 

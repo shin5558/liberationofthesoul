@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   get 'screen/summary',   to: 'screens#summary',   as: :screen_summary # ★追加
   get 'screen/battle', to: 'screens#battle', as: :screen_battle
   get 'screen/prologue', to: 'screens#prologue', as: :screen_prologue
-
+  get 'screen/ending_true', to: 'screens#ending_true', as: :screen_ending_true
   # ★ 追加：A画面が見る「現在モード」API
   get 'screen/mode', to: 'screens#mode'
 

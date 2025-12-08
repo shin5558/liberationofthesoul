@@ -20,6 +20,13 @@ class ScreensController < ApplicationController
     @step     = @progress&.current_step || 'prologue'
   end
 
+  def ending_true
+    @player   = Player.find_by(id: session[:player_id])
+    @progress = @player && StoryProgress.find_by(player: @player)
+    # 必要なら @step も渡す
+    @step     = @progress&.current_step
+  end
+
   # A：バトル画面（とりあえず共通）
   def battle
   end

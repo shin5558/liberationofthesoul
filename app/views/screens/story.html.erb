@@ -98,6 +98,328 @@
     </div>
 
   <%# -------------------------
+     6) ゴブリン戦後
+     ------------------------- %>
+  <% elsif @step == 'after_goblin' %>
+    <%= image_tag "goblin_bg.png",
+          alt: "ゴブリンとの戦いの舞台",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     7) 盗賊戦後
+     ------------------------- %>
+  <% elsif @step == 'after_thief' %>
+    <%= image_tag "thief_bg.png",
+          alt: "土竜盗賊団との対峙の場面",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     8) 分岐2：城の手前
+     ------------------------- %>
+  <% elsif @step == 'branch2_choice' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     9) 門番戦導入
+     ------------------------- %>
+  <% elsif @step == 'gatekeeper_intro' %>
+    <%= image_tag "goblin_bg.png",
+          alt: "門番との戦いの舞台",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     10) 分岐3：プリンセスと将軍
+     ------------------------- %>
+  <% elsif @step == 'princess_meeting' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     11) 門番フロームプリンセス導入
+     ------------------------- %>
+  <% elsif @step == 'gatekeeper_from_princess' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+  <%# -------------------------
+     12) 将軍戦導入
+     ------------------------- %>
+  <% elsif @step == 'general_intro' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+      <%# -------------------------
+     13) 門番戦後
+     ------------------------- %>
+  <% elsif @step == 'after_gatekeeper' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     14) 将軍戦後
+     ------------------------- %>
+  <% elsif @step == 'after_general' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     15) 倉庫門番戦後
+     ------------------------- %>
+  <% elsif @step == 'warehouse_gate' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     16) 倉庫将軍戦後
+     ------------------------- %>
+  <% elsif @step == 'warehouse_general' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     17) 魔王戦導入
+     ------------------------- %>
+  <% elsif @step == 'demonlord_intro' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     18) バッドエンド
+     ------------------------- %>
+  <% elsif @step == 'ending_bad' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     19) ノーマルエンド
+     ------------------------- %>
+  <% elsif @step == 'ending_normal' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     20) トゥルーエンド1
+     ------------------------- %>
+  <% elsif @step == 'ending_true_step1' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+
+    <%# -------------------------
+     21) トゥルーエンド2
+     ------------------------- %>
+  <% elsif @step == 'ending_true_message' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+    
+    <%# -------------------------
+     22) トゥルーエンド3
+     ------------------------- %>
+  <% elsif @step == 'ending_true_after' %>
+    <%= image_tag "forest_front_bg.png",
+          alt: "城の手前",
+          class: "story-prologue-bg" %>
+
+    <div class="story-character-layer">
+      <% if @player&.avatar_image&.attached? %>
+        <%= image_tag @player.avatar_image,
+              alt: @player.name_kana,
+              class: "story-avatar" %>
+      <% end %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "妖精リュミエル",
+            class: "story-fairy" %>
+    </div>
+  <%# -------------------------
      6) その後のシーン（背景だけ）
      ------------------------- %>
   <% elsif @step == 'after_goblin' %>

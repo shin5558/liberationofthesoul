@@ -27,16 +27,25 @@ class StoryProgress < ApplicationRecord
 
   # 例: ステップをenum的に管理したかったらここで
   STEPS = %w[
-    prologue
-    branch1
-    after_goblin
-    after_thief
-    branch2
-    after_gatekeeper
-    after_general
-    warehouse
-    demonlord_intro
-    ending
+    :character_summary,
+    :prologue,
+    :branch1_choice,
+    :goblin_intro,
+    :thief_intro,
+    :after_goblin,
+    :after_thief,
+    :gatekeeper_intro,
+    :princess_meeting,
+    :gatekeeper_from_princess,
+    :general_intro,
+    :after_gatekeeper,
+    :after_general,
+    :warehouse_gate,
+    :warehouse_general,
+    :demonlord_intro,
+    :ending_bad,
+    :ending_normal,
+    :ending_true
   ].freeze
 
   def flags_hash
