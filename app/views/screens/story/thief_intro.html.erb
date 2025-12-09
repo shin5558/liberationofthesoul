@@ -1,0 +1,20 @@
+<%# app/views/screens/story/thief_intro.html.erb %>
+
+<% @step = 'thief_intro' %>
+
+<%# ---- 背景：盗賊に襲われた場面など ---- %>
+<% content_for :background do %>
+  <%= image_tag "thief_bg.png",
+        alt: "盗賊たちが潜む街道の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 敵立ち絵（盗賊の一団） ---- %>
+<% content_for :characters do %>
+  <%= image_tag "bandit_group.png",
+        alt: "盗賊の一団",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>

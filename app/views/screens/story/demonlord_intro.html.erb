@@ -1,0 +1,19 @@
+<%# app/views/screens/story/demonlord_intro.html.erb %>
+
+<% @step = 'demonlord_intro' %>
+
+<%# ---- 背景：魔王城 ---- %>
+<% content_for :background do %>
+  <%= image_tag "demon_castle_bg.png",
+        alt: "魔王城の奥深くの玉座の間",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：魔王 ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_lord.png",
+        alt: "魔王",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

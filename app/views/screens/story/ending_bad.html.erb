@@ -1,0 +1,19 @@
+<%# app/views/screens/story/ending_bad.html.erb %>
+
+<% @step = 'ending_bad' %>
+
+<%# ---- 背景：バッドエンド背景 ---- %>
+<% content_for :background do %>
+  <%= image_tag "ending_bad_bg.png",
+        alt: "バッドエンドの暗い背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：魔王（中央配置） ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_lord.png",
+        alt: "魔王（バッドエンド）",
+        class: "story-enemy-stand-center" %>
+<% end %>
+
+<%= render "screens/story/story" %>

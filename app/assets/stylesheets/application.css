@@ -580,11 +580,11 @@ body.battle-view-only .site-main {
   background-repeat: no-repeat;
 }
 
-/* 敵の立ち絵 */
 .enemy-stand-image {
   position: absolute;
-  right: 5%;
+  left: 50%;
   bottom: 0;
+  transform: translateX(-50%);
   height: 80%;
   max-height: 90vh;
 }
@@ -853,6 +853,51 @@ body.story-view-only .site-main {
   left: 65%;
   transform: translate(-50%, -50%);
   height: 22vh; /* 小さめの妖精サイズ */
-  z-index: 20;
+  z-index: 10;
   opacity: 0.95;
+}
+
+/* =============================
+   A画面：立ち絵サイズ調整（主人公以外）
+   ============================= */
+
+/* 敵キャラ（ゴブリン、盗賊、魔王など） */
+.story-enemy-stand {
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  height: 75vh;           /* 適度なサイズ */
+  object-fit: contain;
+  z-index: 10;
+}
+
+/* NPCキャラ（魔姫、将軍、門番などの通常配置） */
+.story-npc-stand {
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  height: 75vh;           /* 主人公より少し小さめ */
+  object-fit: contain;
+  z-index: 10;
+}
+
+/* NPCキャラ（右側に配置） */
+.story-npc-stand-right {
+  position: absolute;
+  bottom: 0;
+  right: 10%;
+  height: 75vh;
+  object-fit: contain;
+  z-index: 10;
+}
+
+/* ボスなどを中央に大きめで出す演出 */
+.story-enemy-stand-center {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 70vh;           /* 大きいが主人公より大きくしすぎない */
+  object-fit: contain;
+  z-index: 10;
 }

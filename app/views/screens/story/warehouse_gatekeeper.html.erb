@@ -1,0 +1,16 @@
+<%# app/views/screens/story/warehouse_gatekeeper.html.erb %>
+
+<% @step = 'warehouse_gatekeeper' %>
+
+<%# ---- 背景：倉庫エリア ---- %>
+<% content_for :background do %>
+  <%= image_tag "warehouse_bg.png",
+        alt: "砦の倉庫エリアの背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：倉庫に現れる魔姫 ---- %>
+<% content_for :characters do %>
+<% end %>
+
+<%= render "screens/story/story" %>

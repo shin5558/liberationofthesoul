@@ -1,0 +1,19 @@
+<%# app/views/screens/story/gatekeeper_intro.html.erb %>
+
+<% @step = 'gatekeeper_intro' %>
+
+<%# ---- 背景：城門前の砦 ---- %>
+<% content_for :background do %>
+  <%= image_tag "gate_fortress_bg.png",
+        alt: "砦の城門前の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：門番 ---- %>
+<% content_for :characters do %>
+  <%= image_tag "gatekeeper_guard.png",
+        alt: "門番の兵士",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

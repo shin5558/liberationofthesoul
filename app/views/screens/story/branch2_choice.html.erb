@@ -1,0 +1,19 @@
+<%# app/views/screens/story/branch2_choice.html.erb %>
+
+<% @step = 'branch2_choice' %>
+
+<%# ---- 背景：分岐2の交差路（crossroads） ---- %>
+<% content_for :background do %>
+  <%= image_tag "crossroads_bg.png",
+        alt: "交差路の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 立ち絵：今回の場面は敵キャラなし ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_princess_hooded.png",
+        alt: "ダークプリンセス",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

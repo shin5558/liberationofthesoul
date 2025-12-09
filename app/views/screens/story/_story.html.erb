@@ -1,0 +1,76 @@
+<%# A画面：ストーリー画面共通 %>
+<% content_for :body_class, "story-view-only" %>
+
+<div class="story-view-wrapper">
+  <%# ===== 背景（各ステップのテンプレで上書き） ===== %>
+  <%= yield :background %>
+
+  <%# ===== 立ち絵レイヤー（共通） ===== %>
+  <div class="story-character-layer">
+    <%# プレイヤー立ち絵 %>
+    <% if @player&.avatar_image&.attached? %>
+      <%= image_tag @player.avatar_image,
+            alt: @player.name_kana,
+            class: "story-avatar" %>
+    <% end %>
+
+    <%# 妖精：トゥルーエンド系だけ泣き顔 %>
+    <% if @step&.start_with?("ending_true") %>
+      <%= image_tag "fairy_lumiere_sad.png",
+            alt: "Fairy Lumiere (Sad)",
+            class: "story-fairy" %>
+    <% else %>
+      <%= image_tag "A_2D_digital_illustration_in_anime_and_fantasy_art.png",
+            alt: "Fairy Lumiere",
+            class: "story-fairy" %>
+    <% end %>
+  <%= yield :characters %>
+</div>
+    <%# ===== 敵・NPC立ち絵（各ステップで上書き） ===== %>
+<script>
+  (function () {
+    let lastMode = null;
+    let lastStep = null;
+
+    function pathForMode(mode) {
+      switch (mode) {
+        case 'title':     return "<%= screen_title_path %>";
+        case 'character': return "<%= screen_character_path %>";
+        case 'summary':   return "<%= screen_summary_path %>";
+        case 'story':     return "<%= screen_story_path %>";
+        case 'battle':    return "<%= screen_battle_path %>";
+        default:          return "<%= screen_title_path %>";
+      }
+    }
+
+    async function checkState() {
+      try {
+        const res = await fetch("<%= screen_state_path %>", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const mode = data.mode || 'title';
+        const step = data.step || '';
+
+        // 初回は「基準値」を覚えるだけ（リロードしない）
+        if (lastMode === null && lastStep === null) {
+          lastMode = mode;
+          lastStep = step;
+          return;
+        }
+
+        // mode or step が変わったときだけ画面を切り替える
+        if (mode !== lastMode || step !== lastStep) {
+          lastMode = mode;
+          lastStep = step;
+          window.location.href = pathForMode(mode);
+        }
+      } catch (e) {
+        console.warn("screen state check failed", e);
+      }
+    }
+
+    // 2秒ごとに状態だけ確認（変化がなければ何もしない）
+    setInterval(checkState, 2000);
+  })();
+</script>

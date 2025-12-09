@@ -51,6 +51,10 @@ class BattlesController < ApplicationController
       @battle.save!
     end
 
+    # ★★ ここを追加：A画面に「今はバトル＋このID」と伝える
+    session[:screen_mode] = 'battle'
+    session[:battle_id]   = @battle.id
+
     # ★ show ではなく control_screen へ
     redirect_to control_screen_battle_path(@battle)
   end
@@ -159,18 +163,6 @@ class BattlesController < ApplicationController
 
     control_screen
     render :control_screen
-  end
-
-  # =========================
-  # 観客用
-  # =========================
-  def view_screen
-    @battle = Battle.find_by(id: params[:id])
-    return if @battle
-
-    redirect_to new_battle_path(player_id: session[:player_id]),
-                alert: 'バトルが見つかりません。'
-    nil
   end
 
   # =========================

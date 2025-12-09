@@ -1,0 +1,20 @@
+<%# app/views/screens/story/village_intro.html.erb %>
+
+<% @step = 'after_thief' %>
+
+<%# ---- 背景：村の入り口 ---- %>
+<% content_for :background do %>
+  <%= image_tag "village_bg.png",
+        alt: "村の入り口の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 立ち絵：女性冒険者 ---- %>
+<% content_for :characters do %>
+  <%= image_tag "female_adventurer.png",
+        alt: "女性冒険者",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%# ---- 共通テンプレート適用 ---- %>
+<%= render "screens/story/story" %>

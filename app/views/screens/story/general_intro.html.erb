@@ -1,0 +1,23 @@
+<%# app/views/screens/story/general_intro.html.erb %>
+
+<% @step = 'general_intro' %>
+
+<%# ---- 背景：将軍の陣営 ---- %>
+<% content_for :background do %>
+  <%= image_tag "general_camp_bg.png",
+        alt: "将軍の陣営の背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：ダーク将軍 ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_general.png",
+        alt: "ダーク将軍",
+        class: "story-enemy-stand" %>
+
+  <%= image_tag "dark_princess.png",
+        alt: "ダーク将軍",
+        class: "story-npc-stand-right" %>
+<% end %>
+
+<%= render "screens/story/story" %>

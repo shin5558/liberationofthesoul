@@ -1,0 +1,15 @@
+<% @step = 'after_general' %>
+
+<%# ---- 背景 ---- %>
+<% content_for :background do %>
+  <%= image_tag "general_camp_bg.png", class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- NPC/敵の立ち絵（今回は空） ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_princess.png",
+        alt: "ダークプリンセス",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

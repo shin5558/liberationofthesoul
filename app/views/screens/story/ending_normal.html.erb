@@ -1,0 +1,17 @@
+<%# app/views/screens/story/ending_normal.html.erb %>
+
+<% @step = 'ending_normal' %>
+
+<%# ---- 背景：ノーマルエンド背景 ---- %>
+<% content_for :background do %>
+  <%= image_tag "ending_normal_bg.png",
+        alt: "ノーマルエンドの背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：今回は追加なし ---- %>
+<% content_for :characters do %>
+  <%# ノーマルエンドでは敵立ち絵なし %>
+<% end %>
+
+<%= render "screens/story/story" %>

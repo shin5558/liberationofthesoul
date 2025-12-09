@@ -1,0 +1,19 @@
+<%# app/views/screens/story/ending_true_step1.html.erb %>
+
+<% @step = 'ending_true_step1' %>
+
+<%# ---- 背景：真エンド背景（開始） ---- %>
+<% content_for :background do %>
+  <%= image_tag "ending_normal_bg.png",
+        alt: "真エンドの幻想的な背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：泣いている魔姫 ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_princess_cry.png",
+        alt: "泣き崩れる魔姫",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

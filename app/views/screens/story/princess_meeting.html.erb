@@ -1,0 +1,19 @@
+<%# app/views/screens/story/princess_meeting.html.erb %>
+
+<% @step = 'princess_meeting' %>
+
+<%# ---- 背景：プリンセスの部屋 ---- %>
+<% content_for :background do %>
+  <%= image_tag "princess_room_bg.png",
+        alt: "プリンセスの部屋の背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 立ち絵：魔姫（ダークプリンセス） ---- %>
+<% content_for :characters do %>
+  <%= image_tag "dark_princess.png",
+        alt: "ダークプリンセス",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%= render "screens/story/story" %>

@@ -14,7 +14,7 @@ Rails.application.routes.draw do
   get 'screen/ending_true', to: 'screens#ending_true', as: :screen_ending_true
   # ★ 追加：A画面が見る「現在モード」API
   get 'screen/mode', to: 'screens#mode'
-
+  get '/screen/state', to: 'screens#state', as: :screen_state
   # ===== キャラクター =====
   resources :characters, only: %i[new create]
 

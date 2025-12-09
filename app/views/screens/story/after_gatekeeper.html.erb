@@ -1,0 +1,17 @@
+<%# app/views/screens/story/city_square.html.erb %>
+<% @step = 'after_gatekeeper' %>
+
+<%# ---- 背景：街の広場 ---- %>
+<% content_for :background do %>
+  <%= image_tag "city_square_bg.png",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- このシーンで追加したい立ち絵（なければ空でOK） ---- %>
+<% content_for :characters do %>
+  <%# 例：
+  <%#= image_tag "some_npc.png", class: "story-enemy-stand" %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>

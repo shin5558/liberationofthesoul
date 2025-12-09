@@ -1,0 +1,20 @@
+<%# app/views/screens/story/goblin_intro.html.erb %>
+
+<% @step = 'goblin_intro' %>
+
+<%# ---- 背景：ゴブリン遭遇シーン ---- %>
+<% content_for :background do %>
+  <%= image_tag "goblin_bg.png",
+        alt: "ゴブリンに襲われた街道の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 敵キャラ（ゴブリン） ---- %>
+<% content_for :characters do %>
+  <%= image_tag "goblin_group.png",
+        alt: "襲いかかるゴブリンの群れ",
+        class: "story-enemy-stand" %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>

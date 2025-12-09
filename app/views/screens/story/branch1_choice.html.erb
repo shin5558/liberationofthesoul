@@ -1,0 +1,18 @@
+<%# app/views/screens/story/branch1_choice.html.erb %>
+
+<% @step = 'branch1_choice' %>
+
+<%# ---- 背景：森の手前 ---- %>
+<% content_for :background do %>
+  <%= image_tag "forest_front_bg.png",
+        alt: "森の手前の街道と馬車",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 敵・NPC立ち絵（必要ならここに追加） ---- %>
+<% content_for :characters do %>
+  <%# 今は何も出さない → 盗賊団を出したくなったらここに image_tag を追加 %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>

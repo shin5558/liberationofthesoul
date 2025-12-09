@@ -1,0 +1,17 @@
+<%# app/views/screens/story/character_summary.html.erb %>
+
+<% @step = 'character_summary' %>
+
+<%# ---- 背景：キャラまとめ画面 ---- %>
+<% content_for :background do %>
+  <%= image_tag "character_summary_bg.png",
+        alt: "キャラクターまとめ画面の背景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- キャラクター：この場面では追加なし ---- %>
+<% content_for :characters do %>
+  <%# 立ち絵表示なし %>
+<% end %>
+
+<%= render "screens/story/story" %>

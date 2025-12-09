@@ -1,0 +1,18 @@
+<%# app/views/screens/story/prologue.html.erb %>
+
+<% @step = 'prologue' %>
+
+<%# ---- 背景 ---- %>
+<% content_for :background do %>
+  <%= image_tag "prologue_bg.png",
+        alt: "中世の街で人々がざわめく様子",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- この画面で出す敵キャラ（プロローグはなし） ---- %>
+<% content_for :characters do %>
+  <%# prologue では敵立ち絵なし %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>

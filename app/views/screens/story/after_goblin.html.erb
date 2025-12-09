@@ -1,0 +1,18 @@
+<%# app/views/screens/story/road.html.erb %>
+
+<% @step = 'road' %>
+
+<%# ---- 背景：道のシーン ---- %>
+<% content_for :background do %>
+  <%= image_tag "road_bg.png",
+        alt: "街道の風景",
+        class: "story-prologue-bg" %>
+<% end %>
+
+<%# ---- 敵・NPC立ち絵（今回はなし） ---- %>
+<% content_for :characters do %>
+  <%# このシーンでは敵立ち絵なし %>
+<% end %>
+
+<%# ---- 共通レイアウトを呼び出す ---- %>
+<%= render "screens/story/story" %>
