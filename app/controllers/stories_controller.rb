@@ -122,6 +122,9 @@ class StoriesController < ApplicationController
     # 4. キャラ画像生成（ActiveStorage に保存）
     attach_avatar_image(@player, personality)
 
+    # ★ ここでカードも自動生成（全員対象）
+    @player.generate_gift_card!
+
     # 5. プロローグへ遷移
     # 5. プロローグへ遷移
     (@progress || @story_progress).update!(current_step: 'character_summary')
@@ -363,11 +366,32 @@ class StoriesController < ApplicationController
     # ここで「最後の言葉」を入力する画面
   end
 
+  def submit_ending_true_message
+    @player = Player.find(session[:player_id])
+
+    # フォームから飛んでくる name="message"
+    message = params[:message].to_s
+
+    # ① 保存（meta にしまっておく）
+    meta = @player.meta || {}
+    meta['true_ending_message'] = message
+    @player.meta = meta
+    @player.save!
+
+    # ② 手紙画像を生成（便箋＋テキスト）
+    @player.generate_gift_letter!
+
+    # ③ 第三幕（ルナリア旅立ち）へ
+    redirect_to ending_true_after_story_path
+  end
+
   def ending_true_after
     session[:screen_mode] = 'story'
     session[:current_step] = 'ending_true_after'
     @progress.update!(current_step: 'ending_true_after')
     # 魔姫が旅立ち、エンディングテーマが流れる画面
+    @player.attach_gift_card_from_tmp!       # 全員にカード
+    @player.attach_gift_letter_from_tmp!     # 真エンド専用
   end
 
   # =========================
@@ -527,5 +551,37 @@ class StoriesController < ApplicationController
         Rails.logger.error("[AVATAR_IMAGE] 画像生成エラー: #{e.class} #{e.message}")
       end
     end
+  end
+
+  def generate_letter_text(player, last_message)
+    prompt = <<~PROMPT
+      あなたは「魔姫ルナリア」です。
+      プレイヤー（#{player.name_kana}）は真エンドに到達し、
+      最後に以下の言葉をあなたへ送りました。
+
+      ----
+      #{last_message}
+      ----
+
+      これを受けて、
+      ルナリアが「別れの手紙」を書くつもりで、
+      優しく、胸に残る文体で、
+      180〜250文字程度の日本語で手紙を書いてください。
+
+      文中には必ず「#{player.name_kana}さん」と名前を入れ、
+      語尾は丁寧すぎず、気持ちのこもった表現にしてください。
+    PROMPT
+
+    res = OPENAI_CLIENT.chat(
+      parameters: {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'あなたはファンタジー世界の魔姫ルナリアとして手紙を書くAIです。' },
+          { role: 'user', content: prompt }
+        ]
+      }
+    )
+
+    res.dig('choices', 0, 'message', 'content').to_s
   end
 end

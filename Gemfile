@@ -74,3 +74,7 @@ end
 
 # Gemfile
 gem 'ruby-openai'
+
+gem 'mini_magick'
+
+gem 'prawn'

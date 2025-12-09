@@ -1,0 +1,52 @@
+<h1>おみやげ管理（スタッフ用）</h1>
+
+<p>Rails.env: <%= Rails.env %></p>
+<p>DB: <%= ActiveRecord::Base.connection_db_config.database %></p>
+
+<p>プレイヤーID: <%= @player.id %></p>
+<p>名前: <%= @player.name %></p>
+
+<h2>キャラクターカード画像</h2>
+<p>gift_card_image.attached? → <%= @player.gift_card_image.attached? %></p>
+
+<% if @player.gift_card_image.attached? %>
+  <%= image_tag @player.gift_card_image, style: "max-width: 300px; height: auto;" %>
+<% else %>
+  <p>カード画像はまだ登録されていません。</p>
+<% end %>
+
+<h2>ルナリアの手紙画像（真エンド到達者のみ）</h2>
+
+<p>gift_letter_image.attached? → <%= @player.gift_letter_image.attached? %></p>
+
+<% if @player.gift_letter_image.attached? %>
+  <div>
+    <%= image_tag @player.gift_letter_image, style: "max-width: 400px; height: auto;" %>
+  </div>
+<% else %>
+  <p>手紙画像はまだ登録されていません（真エンド未到達 or 未生成）。</p>
+<% end %>
+
+<%# ★ ここから PDF リンク追記 %>
+<h3>手紙 PDF（印刷用）</h3>
+<% if @player.gift_letter_pdf.attached? %>
+  <p>
+    <%= link_to "手紙PDFを開く（新しいタブ）",
+                url_for(@player.gift_letter_pdf),
+                target: "_blank",
+                rel: "noopener" %>
+  </p>
+<% else %>
+  <p>PDF はまだ生成されていません。</p>
+<% end %>
+
+<p>gift_letter_image.attached? → <%= @player.gift_letter_image.attached? %></p>
+
+<% if @player.gift_letter_image.attached? %>
+  <p>
+    手紙画像: 
+    <%= link_to "表示する", url_for(@player.gift_letter_image), target: "_blank", rel: "noopener" %>
+  </p>
+<% else %>
+  <p>手紙画像はまだ登録されていません。</p>
+<% end %>

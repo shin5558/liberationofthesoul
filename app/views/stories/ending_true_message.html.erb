@@ -1,24 +1,30 @@
 <h1>魂の残響エンディング・第二幕</h1>
 
-<p>魔姫に、最後に伝えたい言葉を心の中で、あるいは声に出して伝えてください。</p>
+<p>
+  ルナリアに、最後に伝えたい言葉を心の中で、あるいは声に出して伝えてください。<br>
+</p>
 
-<div class="ending-input-block">
-  <p>
-    ※フェス用：実際にマイクで言ってもらっても、<br>
-    ここにテキストとして打ち込んでもらってもOKです。
-  </p>
-  <textarea rows="3" cols="60"
-            placeholder="例）『俺（私）がいる。一緒に、終わらせよう。』"></textarea>
-</div>
+<%= form_with url: submit_ending_true_message_story_path,
+              method: :post,
+              local: true do %>
 
-<div class="ending-input-actions" style="margin-top: 8px;">
-  <%# ここでは DB 保存などはせず、「ボタンを押す＝想いを届けて第三幕へ」 %>
-  <%= link_to "魔姫に想いを届ける",
-              ending_true_after_story_path,
-              class: "btn",
-              id: "ending-true-send-message" %>
-</div>
+  <div class="ending-input-block">
+    <p>
+    
+    </p>
 
-<hr>
+    <%= text_area_tag :message,
+                      "",
+                      rows: 3,
+                      cols: 60,
+                      id: "ending_message",
+                      placeholder: "例）一緒に、終わらせよう。" %>
+    <%# ここが重要：name="message" で送られる => params[:message] に入る %>
+  </div>
 
-<p>ボタンを押すと、魔姫からの最後の返事と、エンディングテーマが流れます。</p>
+  <div class="ending-input-actions" style="margin-top: 8px;">
+    <%= submit_tag "ルナリアに想いを届ける",
+                   class: "btn",
+                   id: "ending-true-send-message" %>
+  </div>
+<% end %>

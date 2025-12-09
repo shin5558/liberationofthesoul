@@ -157,6 +157,8 @@ GEM
       net-smtp
     marcel (1.1.0)
     matrix (0.4.3)
+    mini_magick (5.3.1)
+      logger
     mini_mime (1.1.5)
     minitest (5.26.0)
     msgpack (1.8.0)
@@ -184,8 +186,13 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    pdf-core (0.10.0)
     pp (0.6.3)
       prettyprint
+    prawn (2.5.0)
+      matrix (~> 0.4)
+      pdf-core (~> 0.10.0)
+      ttfunk (~> 1.8)
     prettyprint (0.2.0)
     prism (1.6.0)
     psych (5.2.6)
@@ -291,6 +298,8 @@ GEM
     thor (1.4.0)
     timeout (0.4.4)
     tsort (0.2.0)
+    ttfunk (1.8.0)
+      bigdecimal (~> 3.1)
     turbo-rails (2.0.20)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
@@ -326,7 +335,9 @@ DEPENDENCIES
   dotenv-rails
   importmap-rails
   jbuilder
+  mini_magick
   mysql2 (~> 0.5)
+  prawn
   puma (>= 5.0)
   rails (~> 7.1.6)
   rubocop-rails

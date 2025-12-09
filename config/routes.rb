@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     # ★ 追加：真エンド3段階
     get :ending_true_step1
     get :ending_true_message
+    post :submit_ending_true_message
     get :ending_true_after
     get :game_over
   end
@@ -93,4 +94,7 @@ Rails.application.routes.draw do
   get 'voices/ending_bad', to: 'voices#ending_bad'
   get 'voices/ending_normal', to: 'voices#ending_normal'
   get 'voices/ending_true', to: 'voices#ending_true'
+
+  # ★★★ ここに追加！おみやげ配布ページ ★★★
+  get '/gifts/:player_id', to: 'gifts#show', as: :gift
 end
