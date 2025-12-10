@@ -1,9 +1,11 @@
 <h1>キャラクター作成</h1>
 
-<%= form_with model: @player, url: characters_path do |f| %>
+<%= form_with model: @player,
+              url: characters_path,
+              autocomplete: "off" do |f| %>
   <div>
     <%= f.label :name_kana, "なまえ（カタカナ）" %><br>
-    <%= f.text_field :name_kana %>
+    <%= f.text_field :name_kana, autocomplete: "off" %>
   </div>
 
   <div>
@@ -11,12 +13,9 @@
     <%= f.select :gender,
           Player.genders.keys.map { |g| [g, g] },
           {}, {} %>
-    <%# male / female / unknown が選べる %>
   </div>
 
   <div style="margin-top: 16px;">
-<%= f.submit "次へ",
-      class: "btn"
-%>
+    <%= f.submit "次へ", class: "btn" %>
   </div>
 <% end %>

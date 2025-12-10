@@ -201,7 +201,7 @@ h1, h2 {
 /* 16:9 のバトルエリア本体 */
 turbo-frame#battle-board .battle-wrapper {
   width: 1152px;
-  height: 648px;
+  height: 450px;
   margin: 12px auto;
   position: relative;
   overflow: visible;
@@ -278,8 +278,11 @@ turbo-frame#battle-board .hp-fill.is-danger {
 turbo-frame#battle-board .card-back {
   width: 100px;
   height: 150px;
-  background: #1c2c44;
   border-radius: 10px;
+  background-image: url('/assets/enemy_card_back_dark.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   box-shadow: 0 3px 6px rgba(0,0,0,0.5);
   position: relative;
 }
@@ -313,7 +316,7 @@ turbo-frame#battle-board .hand-row {
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin-top: 12px;
+  margin-top: 4px;
   flex-wrap: nowrap;
   overflow-x: auto;
 }
@@ -345,7 +348,7 @@ turbo-frame#battle-board .player-card {
   width: 100px;
   height: 150px;
   border-radius: 10px;
-  background-image: url('/assets/card_back_magic_circle.png');
+  background-image: url('/assets/enemy_card_back_dark.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -471,7 +474,7 @@ turbo-frame#battle-board .card-tooltip-status {
 
 /* じゃんけんボタン横並び */
 .battle-controls {
-  margin-top: 5px;
+  margin-top: -4px;
   text-align: center;
   width: 100%;
 }
