@@ -23,7 +23,7 @@
   <p class="prologue-line is-princess"
      data-line-id="princess_1">
     「わたしは魔王の娘よ。<br>
-     皆からは『魔姫』と呼ばれているわ。」
+     皆からは『ルナリア』と呼ばれているわ。」
   </p>
 
   <p class="prologue-line is-fairy"
@@ -39,7 +39,7 @@
 
   <p class="prologue-line is-narrator"
      data-line-id="narrator_3">
-    魔姫が指を鳴らすと、路地の影から、数人の魔族たちが姿を現した。<br>
+    ルナリアが指を鳴らすと、路地の影から、数人の魔族たちが姿を現した。<br>
     彼らの瞳は、恐れではなく、どこか決意に満ちた光を帯びている。
   </p>
 
@@ -63,7 +63,7 @@
 
   <p class="prologue-line is-narrator"
      data-line-id="narrator_4">
-    魔姫は一瞬だけ目を伏せ、そして真っ直ぐこちらを見つめ返してきた。<br>
+    ルナリアは一瞬だけ目を伏せ、そして真っ直ぐこちらを見つめ返してきた。<br>
     その視線には、打算だけではない、揺るぎない覚悟のようなものが宿っている。
   </p>
 
@@ -77,7 +77,7 @@
      data-line-id="fairy_3">
     「どうする、<%= current_player&.name_kana || "あなた" %>？<br>
       目的が同じなら、手を組むのもアリかもしれないけど……<br>
-      魔族（ひと）に手を貸すの、いやだっていう気持ちも分かるよ。」
+      魔族に手を貸すの、いやだっていう気持ちも分かるよ。」
   </p>
 
   <p class="prologue-line is-narrator"
@@ -89,13 +89,12 @@
 
 <hr>
 
-<p>どう行動しますか？</p>
 <ul>
   <li>
     <%# 選択肢 3-A：目的が同じなら手を貸す → 秘密の通路ルート（将軍戦へ） %>
     <%= form_with url: go_general_from_princess_story_path, method: :post, local: true do %>
       <button type="submit" class="btn">
-        選択肢 3-A：目的が同じなら手を貸す
+        目的が同じなら手を貸す
       </button>
     <% end %>
   </li>
@@ -103,7 +102,7 @@
     <%# 選択肢 3-B：魔族には手を貸せない → 門番ルートに合流 %>
     <%= form_with url: go_gatekeeper_from_princess_story_path, method: :post, local: true do %>
       <button type="submit" class="btn">
-        選択肢 3-B：魔族には手を貸せない
+        魔族には手を貸せない
       </button>
     <% end %>
   </li>

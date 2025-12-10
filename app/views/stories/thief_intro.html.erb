@@ -44,8 +44,7 @@
 
 <hr>
 
-<p>「盗賊達との戦闘に入る」</p>
-<%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "thief"), class: "btn" %>
+<%= link_to "盗賊たちとの戦闘に入る", new_battle_path(player_id: @player.id, enemy_type: "thief"), class: "btn" %>
 
 <div style="margin-top: 16px;">
   <button id="thief-intro-play" class="btn" style="display:none;">

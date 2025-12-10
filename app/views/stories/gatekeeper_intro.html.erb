@@ -49,11 +49,9 @@
 </section>
 
 <hr>
-
-<p>門番との戦闘に入ります。</p>
 <ul>
   <li>
-    <%= link_to "戦闘開始",
+    <%= link_to "門番との戦闘に入る",
                 new_battle_path(player_id: current_player&.id, enemy_type: "gatekeeper"),
                 class: "btn" %>
   </li>

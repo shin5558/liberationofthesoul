@@ -471,7 +471,7 @@ turbo-frame#battle-board .card-tooltip-status {
 
 /* じゃんけんボタン横並び */
 .battle-controls {
-  margin-top: 16px;
+  margin-top: 5px;
   text-align: center;
   width: 100%;
 }
@@ -808,12 +808,56 @@ body.story-view-only .site-main {
 }
 
 /* 役ごとの色（プロローグ／分岐／導入 共通） */
-.is-narrator     { color: #e5e7eb; }   /* ナレーション */
-.is-fairy        { color: #f9a8d4; }   /* 妖精リュミエル */
-.is-voice        { color: #fca5a5; }   /* 遠くの悲鳴など */
-.is-goblin       { color: #bbf7d0; }   /* ゴブリン */
+.is-narrator {
+  color: #000000;  /* ナレーション：薄いグレー */
+}
+
+.is-fairy {
+  color: #64C83C;  /* 妖精リュミエル：ピンク */
+}
+
+.is-voice {
+  color: #DC143C;  /* 遠くの悲鳴・声：薄い赤 */
+}
+
+.is-goblin {
+  color: #7A9E51;  /* ゴブリン：黄緑 */
+}
+
 .is-thief,
-.is-thief-leader { color: #fde68a; }   /* 盗賊・盗賊団長 */
+.is-thief-leader {
+  color: #BE7814;  /* 盗賊・盗賊団長：黄色系で統一 */
+}
+
+/* 女性 NPC 全般（村人など） */
+.is-woman {
+  color: #DC143C;  /* フェミニンなピンク系（妖精と同系色でも可） */
+}
+
+/* 魔姫ルナリア */
+.is-princess {
+  color: #9632AA;  /* 少し幻想的な紫 */
+}
+
+/* 謎の人物（ローブ姿など） */
+.is-mystery {
+  color: #9632AA;  /* 青みのある紫 */
+}
+
+/* 門番 */
+.is-gatekeeper {
+  color: #A05A01;  /* 警備・兵士っぽい青 */
+}
+
+/* 将軍 */
+.is-general {
+  color: #1F5600;  /* リーダー感あるオレンジ系 */
+}
+
+/* 魔王 */
+.is-demonlord {
+  color: #640A64;  /* 少し強めの赤 */
+}
 
 /* セリフのフェードイン */
 @keyframes storyFadeIn {
@@ -904,7 +948,7 @@ body.story-view-only .site-main {
 
 /* しずかに涙ぐむように消える演出 */
 .farewell-vanish {
-  animation: farewellVanish 4.5s ease-in-out forwards;
+  animation: farewellVanish 10s ease-in-out forwards;
 }
 
 @keyframes farewellVanish {

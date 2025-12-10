@@ -1,6 +1,6 @@
-<h1>NPCとの会話</h1>
+<h1>大妖精との会話</h1>
 
-<p><strong>案内役:</strong> <%= @npc_message %></p>
+<p><strong>大妖精:</strong> <%= @npc_message %></p>
 
 <hr>
 
@@ -12,7 +12,7 @@
       </p>
     <% elsif log["role"] == "assistant" %>
       <p>
-        <strong>案内役:</strong> <%= log["content"] %>
+        <strong>大妖精:</strong> <%= log["content"] %>
       </p>
     <% end %>
   <% end %>
@@ -30,11 +30,6 @@
     <%= f.submit "話す", class: "btn" %>
   </div>
 
-  <div style="margin-top:8px;">
-    <%= f.submit "この会話でキャラを確定する",
-          class: "btn",
-          name: "finish",
-          value: "1" %>
   </div>
 <% end %>
 

@@ -10,12 +10,12 @@
 
   <p class="prologue-line is-fairy"
      data-line-id="fairy_2">
-    「今ここにいる魔族（ひと）達は、戦いが得意ではないみたいだね。」
+    「今ここにいる魔族達は、戦いが得意ではないみたいだね。」
   </p>
 
   <p class="prologue-line is-fairy"
      data-line-id="fairy_3">
-    「戦える魔族（ひと）達は、城に集められてるみたい。」
+    「戦える魔族達は、城に集められてるみたい。」
   </p>
 
   <p class="prologue-line is-voice"
@@ -46,7 +46,7 @@
 
   <p class="prologue-line is-fairy"
      data-line-id="fairy_6">
-    「あなたみたいな、姿を見せない怪しい魔族（ひと）とは、協力なんて無理だよ。」
+    「あなたみたいな、姿を見せない怪しい魔族とは、協力なんて無理だよ。」
   </p>
 
   <p class="prologue-line is-voice"
@@ -64,18 +64,17 @@
 
 <hr>
 
-<p>どうする？</p>
 <ul>
   <li>
     <%# 選択肢 2-A: 信用しない → 門番ルートへ %>
-    <%= button_to "2-A：信用できない、無視してこのまま魔王城へ急ぐ",
+    <%= button_to "信用できない、無視してこのまま魔王城へ急ぐ",
                   go_gatekeeper_story_path,
                   method: :post,
                   class: "btn" %>
   </li>
   <li>
     <%# 選択肢 2-B: 信じてついていく → 魔姫ルートへ %>
-    <%= button_to "2-B：信じてついていくことにする",
+    <%= button_to "信じてついていくことにする",
                   go_princess_story_path,
                   method: :post,
                   class: "btn" %>

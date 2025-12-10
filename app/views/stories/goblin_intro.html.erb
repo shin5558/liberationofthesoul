@@ -28,8 +28,7 @@
 
 <hr>
 
-<p>「ゴブリン達との戦闘に入る」</p>
-<%= link_to "戦闘開始", new_battle_path(player_id: @player.id, enemy_type: "goblin"), class: "btn" %>
+<%= link_to "ゴブリンたちとの戦闘に入る", new_battle_path(player_id: @player.id, enemy_type: "goblin"), class: "btn" %>
 
 <div style="margin-top: 16px;">
   <button id="goblin-intro-play" class="btn" style="display:none;">

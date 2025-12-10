@@ -37,7 +37,7 @@ class VoicesController < ApplicationController
       '耳をすませると、風の流れとは違う、不自然な音が混じっている気がする。'
     },
     'voice_1' => lambda { |name|
-      '……たすけて……！'
+      '……たすけて！……'
     },
     'fairy_2' => lambda { |name|
       '今のは……、悲鳴……？'
@@ -121,10 +121,10 @@ class VoicesController < ApplicationController
       'あっ、ほら。馬車の中、何か光ってるよ……！'
     },
     'narrator_2' => lambda { |name|
-      '倒れた馬車の荷台には、淡く光を放つ一枚のカードが転がっていた。まるで、持ち主を待っていたかのように。'
+      '倒れた馬車の荷台には、淡く光を放つカードセットが転がっていた。まるで、持ち主を待っていたかのように。'
     },
     'fairy_4' => lambda { |name|
-      'じゃーん！ 無属性カードだよ。誰でも使える便利なカードだから、きっと役に立つはず！'
+      'じゃーん！ 属性カードだよ。誰でも使える便利なカードだから、きっと役に立つはず！'
     },
     'narrator_3' => lambda { |name|
       'あなたはカードを受け取り、そっとデッキにしまった。心なしか、指先に温かな力が宿ったように感じる。'
@@ -164,19 +164,19 @@ class VoicesController < ApplicationController
       'うう……慣れてますから、いいですけど…。それよりも、お礼にこちらを受け取ってください。'
     },
     'narrator_4' => lambda { |name|
-      '女性が差し出したのは、淡い光を帯びた一枚のカードだった。手にした瞬間、指先に小さな鼓動のような力が伝わってくる。'
+      '女性が差し出したのは、淡い光を帯びたカードセットだった。手にした瞬間、指先に小さな鼓動のような力が伝わってくる。'
     },
     'woman_3' => lambda { |name|
       '旅の途中で拾った、不思議なカードなんです。わたしよりも、あなたたちのほうがきっと上手く使えると思って…。'
     },
     'fairy_3' => lambda { |name|
-      'わあ、ありがとう！ 無属性カードだね。誰でも使える、便利なやつだよ。'
+      'わあ、ありがとう！ 属性カードだね。誰でも使える、便利なやつだよ。'
     },
     'narrator_5' => lambda { |name|
       'カードは、あなたのデッキの中に自然と溶け込むように納まっていく。新たな一手を手に入れたという実感が、心を少しだけ軽くした。'
     },
     'woman_4' => lambda { |name|
-      'わたしは、一度家に戻ります。本当にありがとうございました。それでは、失礼します。'
+      'わたしは、一度いえに戻ります。本当にありがとうございました。それでは、失礼します。'
     },
     'narrator_6' => lambda { |name|
       '女性は何度も振り返りながら頭を下げると、森の出口のほうへと小走りに去っていった。'
@@ -282,7 +282,7 @@ class VoicesController < ApplicationController
     },
 
     'princess_1' => lambda { |name|
-      'わたしは魔王の娘よ。皆からは『魔姫』と呼ばれているわ。'
+      'わたしは魔王の娘よ。皆からは『ルナリア』と呼ばれているわ。'
     },
 
     'fairy_1' => lambda { |name|
@@ -294,7 +294,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_3' => lambda { |name|
-      '魔姫が指を鳴らすと、路地の影から、数人の魔族たちが姿を現した。' \
+      'ルナリアが指を鳴らすと、路地の影から、数人の魔族たちが姿を現した。' \
       '彼らの瞳は、恐れではなく、どこか決意に満ちた光を帯びている。'
     },
 
@@ -312,7 +312,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_4' => lambda { |name|
-      '魔姫は一瞬だけ目を伏せ、そして真っ直ぐこちらを見つめ返してきた。' \
+      'ルナリアは一瞬だけ目を伏せ、そして真っ直ぐこちらを見つめ返してきた。' \
       'その視線には、打算だけではない、揺るぎない覚悟のようなものが宿っている。'
     },
 
@@ -323,7 +323,7 @@ class VoicesController < ApplicationController
 
     'fairy_3' => lambda { |name|
       "どうする、#{name}？目的が同じなら手を組むのもアリかもしれないけど……" \
-      '魔族（ひと）に手を貸すの、いやだっていう気持ちも分かるよ。'
+      '魔族に手を貸すの、いやだっていう気持ちも分かるよ。'
     },
 
     'narrator_5' => lambda { |name|
@@ -335,8 +335,8 @@ class VoicesController < ApplicationController
   GENERAL_INTRO_LINES = {
     # --- 地下通路へ向かう ---
     'narrator_1' => lambda { |name|
-      '魔姫の提案を受け入れ、あなたたちは城下町の一角にある古びた建物の裏手へと向かった。' \
-      '普段は誰も近寄らないのか、ひっそりとしたその場所には、重そうな鉄扉がひとつだけ、ぽつんと残されている。'
+      'ルナリアの提案を受け入れ、あなたたちは城下町の一角にある古びた建物の裏手へと向かった。' \
+      '普段は誰も近寄らないのか、ひっそりとしたその場所には、重そうなてつとびらがひとつだけ、ぽつんと残されている。'
     },
 
     'princess_1' => lambda { |name|
@@ -352,7 +352,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_2' => lambda { |name|
-      '魔姫が手をかざすと、鉄扉に刻まれた魔法陣が淡く光り、重い音を立てて扉が開いていく。' \
+      'ルナリアが手をかざすと、てつとびらに刻まれた魔法陣が淡く光り、重い音を立てて扉が開いていく。' \
       'その奥には、ひんやりとした空気の漂う石造りの階段が、闇の中へと続いていた。'
     },
 
@@ -371,7 +371,7 @@ class VoicesController < ApplicationController
     },
 
     'fairy_3' => lambda { |name|
-      'ねぇ、魔姫。こういう秘密の通路って、罠とかないよね……？'
+      'ねぇ、ルナリア。こういう秘密の通路って、罠とかないよね……？'
     },
 
     'princess_4' => lambda { |name|
@@ -380,7 +380,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_4' => lambda { |name|
-      'そう言って魔姫が進む先、地下通路はふっと開け、丸い広間のような空間へと出た。' \
+      'そう言ってルナリアが進む先、地下通路はふっと開け、丸い広間のような空間へと出た。' \
       '壁には古い紋章が刻まれ、中央には、まるで儀式でも行われたかのような円形の模様が描かれている。'
     },
 
@@ -404,7 +404,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_6' => lambda { |name|
-      '将軍の視線が、魔姫とあなたたちの姿をゆっくりとなぞる。' \
+      '将軍の視線が、ルナリアとあなたたちの姿をゆっくりとなぞる。' \
       'その目には、忠義とも執念ともつかない、重い覚悟が宿っていた。'
     },
 
@@ -441,7 +441,7 @@ class VoicesController < ApplicationController
   GATEKEEPER_FROM_PRINCESS_LINES = {
     # 魔姫との別れ
     'narrator_1' => lambda { |name|
-      'あなたが迷いながらも首を横に振ると、魔姫の瞳が、ほんの少しだけ揺れた。'
+      'あなたが迷いながらも首を横に振ると、ルナリアの瞳が、ほんの少しだけ揺れた。'
     },
 
     'princess_1' => lambda { |name|
@@ -449,7 +449,7 @@ class VoicesController < ApplicationController
     },
 
     'fairy_1' => lambda { |name|
-      "ごめんね、魔姫。でも、#{name} の気持ちも、分かってあげてほしいの。" \
+      "ごめんね、ルナリア。でも、#{name} の気持ちも、分かってあげてほしいの。" \
       'いきなり“魔王の娘と組もう”って言われても、簡単には決められないよ。'
     },
 
@@ -458,7 +458,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_2' => lambda { |name|
-      '魔姫はふっと寂しそうに微笑むと、くるりと背を向けた。'
+      'ルナリアはふっと寂しそうに微笑むと、くるりと背を向けた。'
     },
 
     'princess_3' => lambda { |name|
@@ -467,7 +467,7 @@ class VoicesController < ApplicationController
     },
 
     'narrator_3' => lambda { |name|
-      'そう言い残し、魔姫と反乱軍の一行は路地裏の奥へと姿を消していく。' \
+      'そう言い残し、ルナリアと反乱軍の一行は路地裏の奥へと姿を消していく。' \
       '残されたのは、静まり返った通りと、胸の奥に残る小さなざわめきだけだった。'
     },
 
@@ -603,7 +603,7 @@ class VoicesController < ApplicationController
       "すごいわ、#{name}。あなたがいてくれたから、ここまで来ることができたのよ。"
     },
     'princess_2' => lambda { |name|
-      'でも、このまま真っ直ぐ魔王の間へ向かうのは危険だわ。魔王は「混沌の源」を取り込んでいて、' \
+      'でも、このまま真っ直ぐ魔王のまへ向かうのは危険だわ。魔王は「混沌の源」を取り込んでいて、' \
       '普通の力じゃ太刀打ちできない。'
     },
     'princess_3' => lambda { |name|
@@ -611,14 +611,14 @@ class VoicesController < ApplicationController
       'あなたに託したいの。'
     },
     'fairy_2' => lambda { |name|
-      'えっ、切り札！？ そんな大事なものを隠してたなんて、聞いてないよ、魔姫！'
+      'えっ、切り札！？ そんな大事なものを隠してたなんて、聞いてないよ、ルナリア！'
     },
     'princess_4' => lambda { |name|
       "言っていなかったもの。でも、今がその力を使うべき時よ。――ついてきて、#{name}。"
     },
     'narrator_3' => lambda { |name|
-      '魔姫は踵を返し、崩れた広間の奥へと歩き出す。その背中は、この先の暗い道を照らす、' \
-      '小さな灯火のように見えた。あなたたちは互いにうなずき合い、静かにその後を追っていく――。'
+      'ルナリアは踵を返し、崩れた広間の奥へと歩き出す。その背中は、この先の暗い道を照らす、' \
+      '小さな灯火のように見えた。あなたたちは互いにうなずき合い、静かにそのあとを追っていく――。'
     }
   }.freeze
 
@@ -631,8 +631,8 @@ class VoicesController < ApplicationController
       '見て、こんなのがあったよ！'
     },
     'narrator_1' => lambda { |name|
-      '木箱の中から取り出されたのは、淡く光る一枚のカードだった。' \
-      '属性を持たないそのカードは――『無属性カード』と呼ばれる特別な秘宝だ。'
+      '木箱の中から取り出されたのは、淡く光るカードセットだった。' \
+      '属性を持った特別な力をやどす――『属性カード』と呼ばれる特別な秘宝だ。'
     },
     'fairy_3' => lambda { |name|
       'これで魔王と戦おう！きっと最後の一手を支えてくれるはずだよ。'
@@ -647,10 +647,10 @@ class VoicesController < ApplicationController
     },
     'narrator_1' => lambda { |name|
       '薄暗い倉庫の片隅で、古びた木箱の中に淡く光るカードが一枚だけ収められていた。' \
-      'それは属性に縛られない特別な力を宿した――『無属性カード』だった。'
+      '属性を持った特別な力をやどす――『属性カード』だった。'
     },
     'fairy_1' => lambda { |name|
-      'これはすごいね……こんなに強い力を隠しておくなんて、さすが魔姫だよ。'
+      'これはすごいね……こんなに強い力を隠しておくなんて、さすがルナリアだよ。'
     },
     'princess_2' => lambda { |name|
       'これで魔王と戦えるはずよ。わたしはみんなが心配だから向こうと合流するわ。――頑張ってね！'
@@ -698,7 +698,7 @@ class VoicesController < ApplicationController
     },
     'narrator_5' => lambda { |name|
       'リュミエルは小さな拳をぎゅっと握りしめ、視線を逸らさない。' \
-      '震えているのは恐怖か、それとも怒りか――それでも、その瞳には確かな意志が宿っていた。'
+      '震えているのは恐怖か、それともいかりか――それでも、その瞳には確かな意志が宿っていた。'
     },
     'fairy_3' => lambda { |name|
       "ねぇ、#{name}。あなたがここまで来たのは、誰かを守りたいって思ったからでしょ？ " \
@@ -787,7 +787,7 @@ class VoicesController < ApplicationController
     },
     'fairy_1' => lambda { |name|
       "……終わった、のかな。やっと……やっと、ここまで来たんだね、#{name}。" \
-      'ほら、誰か来る……あの気配……魔姫だ……！'
+      'ほら、誰か来る……あの気配……ルナリアだ……！'
     },
     'princess_1' => lambda { |name|
       "間に合ったみたいね……。本当に、よくここまで辿り着いてくれたわ、#{name}。" \
@@ -796,7 +796,7 @@ class VoicesController < ApplicationController
 
     'narrator_2' => lambda { |name|
       '感謝の言葉を続けようとした、そのとき。' \
-      '魔姫の体から、淡い光の粒が、ぽつり、ぽつりと零れ落ちていた。'
+      'ルナリアの体から、淡い光の粒が、ぽつり、ぽつりと零れ落ちていた。'
     },
     'fairy_2' => lambda { |name|
       '……ねぇ、それ……なに、その光……。まさか、これって……。'
@@ -824,22 +824,22 @@ class VoicesController < ApplicationController
       'わたしが、この世界にいた証を……あなたの心のどこかに、残しておいてほしいの。'
     },
     'narrator_4' => lambda { |name|
-      '魔姫の瞳は、不思議と穏やかだった。' \
+      'ルナリアの瞳は、不思議と穏やかだった。' \
       'まるで、運命の結末を、もう受け入れてしまっているかのように。'
     },
 
     # ここから第2ブロック
 
     'princess_5' => lambda { |name|
-      '……ありがとう。その言葉、ちゃんと届いたわ。星風が、きっと、いつまでも覚えていてくれる。'
+      '……ありがとう。その言葉、ちゃんと届いたわ。ほしかぜが、きっと、いつまでも覚えていてくれる。'
     },
     'narrator_5' => lambda { |name|
-      '魔姫の体は、光の粒となって、ゆっくりと空へ昇っていく。' \
+      'ルナリアの体は、光の粒となって、ゆっくりと空へ昇っていく。' \
       '銀の夜明け前の空に、その光は、ひと筋の軌跡を描きながら溶けていった。'
     },
     'fairy_4' => lambda { |name|
       'やだよ……そんなの……。一緒に終わらせようって……三人で笑って帰ろうって、そう言ったのに……。' \
-      '魔姫の、ばか……。'
+      'ルナリアの、ばか……。'
     },
     'narrator_6' => lambda { |name|
       'リュミエルの大粒の涙が床に落ち、静かな音を立てる。それでも世界は、' \
@@ -848,7 +848,7 @@ class VoicesController < ApplicationController
 
     'narrator_7' => lambda { |name|
       '失われたものは、二度と元には戻らない。けれど――' \
-      'あなたと魔姫が交わした言葉は、この世界のどこかに、静かに残響し続けるだろう。'
+      'あなたとルナリアが交わした言葉は、この世界のどこかに、静かに残響し続けるだろう。'
     },
     'fairy_5' => lambda { |name|
       "ねぇ、#{name}。これからも、きっと苦しいことはいっぱいあるよ。" \
@@ -859,7 +859,7 @@ class VoicesController < ApplicationController
       'それでも前を向こうと、精一杯の笑顔を浮かべた。'
     },
     'fairy_6' => lambda { |name|
-      '行こう。魔姫が守りたかった世界を、わたしたちもちゃんと歩いていこう。'
+      '行こう。ルナリアが守りたかった世界を、わたしたちもちゃんと歩いていこう。'
     },
     'narrator_9' => lambda { |name|
       '夜明け前の空は、星々の光と、消えゆく光の残り香に満たされている。' \
@@ -983,6 +983,8 @@ class VoicesController < ApplicationController
     send_data wav, type: 'audio/wav', disposition: 'inline'
   end
 
+  private
+
   def speaker_for(key)
     base = {
       model_name: 'amitaro', # エディタで使っていたモデル
@@ -994,28 +996,47 @@ class VoicesController < ApplicationController
     case key
     when /\Afairy/
       base.merge(speaker_name: 'あみたろ') # 妖精
+
+    when /\Avoice/
+      base.merge(speaker_name: 'あみたろ') # 遠くの悲鳴・声
+
     when /\Agoblin/
-      base.merge(speaker_name: 'あみたろ') # ゴブリン（別声が欲しければここで変える）
+      base.merge(speaker_name: 'あみたろ') # ゴブリン
+
     when /\Athief/
       base.merge(speaker_name: 'あみたろ') # 盗賊
+
+    when /\Athief-leader/
+      base.merge(speaker_name: 'あみたろ') # 盗賊団長
+
     when /\Awoman/
       base.merge(speaker_name: 'あみたろ') # 女性NPC
+
     when /\Aprincess/
       base.merge(speaker_name: 'あみたろ') # 魔姫
+
     when /\Amystery/
       base.merge(speaker_name: 'あみたろ') # 謎の人物
+
     when /\Agatekeeper/
       base.merge(speaker_name: 'あみたろ') # 門番
+
     when /\Ageneral/
       base.merge(speaker_name: 'あみたろ') # 将軍
+
+    when /\Ademonlord/
+      base.merge(speaker_name: 'あみたろ') # 魔王
+
     else
       base.merge(speaker_name: 'あみたろ') # ナレーション
     end
   end
 
+  # ← ここでいったん speaker_for を閉じる（end）
+
   def synthesize(text, speaker = nil)
     # speaker は今のところ使わないけど、
-    # 既存の呼び出しと合わせて引数だけ残しておく
+    # 既存の呼び出しとの引数を合わせて残しておく
 
     uri = URI("#{STYLEBERT_HOST}/voice")
 
@@ -1037,14 +1058,9 @@ class VoicesController < ApplicationController
     res.body # audio/wav のバイナリ
   end
 
-  # ================================
-  # ★ 共通キャッシュ付き再生メソッド
-  # ================================
   def send_cached_voice(scene_key, line_key, text)
-    # text（＝プレイヤー名入り）からハッシュを作る
     digest   = Digest::SHA256.hexdigest(text)[0, 16]
 
-    # 例: storage/voices/prologue/narrator_1_xxxxxxxx.wav
     dir_path = Rails.root.join('storage', 'voices', scene_key)
     FileUtils.mkdir_p(dir_path)
 
