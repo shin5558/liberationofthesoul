@@ -57,7 +57,7 @@ class Player < ApplicationRecord
     bg_img  = MiniMagick::Image.open(bg_path.to_s)
     av_img  = MiniMagick::Image.open(avatar_temp.path)
 
-    av_img.resize '400x400'
+    av_img.resize '922x1382'
 
     result = bg_img.composite(av_img) do |c|
       c.gravity 'center'
@@ -98,7 +98,7 @@ class Player < ApplicationRecord
       - 最後は必ず「ルナリアより」で締める
       - 文体はやさしくて少し切ない感じ
       - 絵文字・顔文字は使わない
-      - 全体で 400〜600 文字程度
+      - 全体で 400〜500 文字程度
       - 段落ごとに改行して読みやすくする
     SYS
 
@@ -142,6 +142,8 @@ class Player < ApplicationRecord
       FALLBACK
     end
 
+    letter_body = wrap_letter_text(letter_body, limit: 16)
+
     # 便箋
     bg_path = Rails.root.join('app', 'assets', 'images', 'gifts', 'letter_bg.png')
     unless File.exist?(bg_path)
@@ -159,7 +161,6 @@ class Player < ApplicationRecord
       letter_body
       .gsub('\\', '\\\\\\') # バックスラッシュ
       .gsub("'",  "\\\\'")  # シングルクォート
-      .gsub("\n", '\\n')    # 改行（ImageMagick 用）
 
     font_candidates = [
       '/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc',
@@ -172,10 +173,11 @@ class Player < ApplicationRecord
 
     image.combine_options do |c|
       c.gravity   'NorthWest'
-      c.pointsize 28
-      c.fill      'white'
+      c.pointsize 24
+      c.fill      '#8B5A2B'
       c.font font_path if font_path
-      c.draw "text 80,180 '#{draw_text}'"
+      c.interline_spacing 10
+      c.draw "text 330,200 '#{draw_text}'"
     end
 
     image.write(out_path.to_s)
@@ -210,5 +212,21 @@ class Player < ApplicationRecord
       filename: "player_#{id}_letter.png",
       content_type: 'image/png'
     )
+  end
+
+  # 全角ベースで n 文字ごとに折り返す簡易ラッパ
+  def wrap_letter_text(text, limit: 16)
+    paragraphs = text.split(/\n+/) # 空行ごとの段落
+
+    wrapped = paragraphs.map do |para|
+      chars = para.chars
+      lines = []
+
+      lines << chars.shift(limit).join while chars.any?
+
+      lines.join("\n")
+    end
+
+    wrapped.join("\n\n") # 段落の間は 1 行空ける
   end
 end

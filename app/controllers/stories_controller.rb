@@ -30,7 +30,7 @@ class StoriesController < ApplicationController
         last_npc['content']
       else
         "はじめまして、#{@player.name_kana}。これから何問か質問をするね。気楽に答えてほしい。
-        あなたを一言で表すと？"
+        あなたを一言で表すと？（例：私は冒険が大好きな勇敢な人です。）"
       end
   end
 

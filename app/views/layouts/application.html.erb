@@ -23,7 +23,16 @@
     </main>
 
     <footer class="site-footer">
-      © 2025 Liberation of the Soul
+      <div class="site-footer__inner">
+        <small>
+          &copy; <%= Time.current.year %> Liberation of the Soul
+          <% if defined?(current_player) && current_player.present? %>
+            | Character ID: <%= current_player.id %>
+          <% else %>
+            | Character ID: NONE
+          <% end %>
+        </small>
+      </div>
     </footer>
 
     <!-- ==========================================
